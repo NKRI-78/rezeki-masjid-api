@@ -9,8 +9,6 @@ const { generateOTP } = require('../configs/otp');
 module.exports = {
   me: async (req, res) => {
     try {
-      //   User.me();
-
       var userId = req.decoded.id;
 
       const users = await User.me(userId);
