@@ -1,0 +1,61 @@
+const conn = require('../configs/db');
+
+module.exports = {
+  login: (val) => {
+    return new Promise((resolve, reject) => {
+      var query = `SELECT p.avatar, u.id, u.phone, r.name AS role, u.email, u.password, p.fullname
+            FROM users u
+            INNER JOIN profiles p ON u.id = p.user_id
+            INNER JOIN roles r ON r.id = u.role
+            WHERE u.email = '${val}' OR u.phone = '${val}'`;
+      conn.query(query, (e, result) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  },
+
+  register: (otp, phone, email, role, password) => {
+    return new Promise((resolve, reject) => {
+      var query = `INSERT INTO users (otp, phone, email, role, password) 
+            VALUES ('${otp}', '${phone}', '${email}', '${role}', '${password}') 
+            ON DUPLICATE KEY UPDATE created_at = NOW()`;
+      conn.query(query, (e, result) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(result.insertId);
+        }
+      });
+    });
+  },
+
+  checkEmail: (email) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT email, password FROM users WHERE email = '${email}'`;
+      conn.query(query, (e, res) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  },
+
+  checkPhone: (phone) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT phone FROM users WHERE phone = '${phone}'`;
+      conn.query(query, (e, res) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  },
+};
