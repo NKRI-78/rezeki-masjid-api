@@ -123,6 +123,7 @@ module.exports = {
       to: email,
       app: 'RZM',
       subject: 'Kode OTP Rezeki Masjid APP',
+      type: 'another-otp',
       body: `
       <div style="font-family: Helvetica, Arial, sans-serif; min-width:1000px; overflow:auto; line-height:1.8; background:#f6f8fb; padding:30px 0;">
         <div style="margin:0 auto; width:70%; background:#ffffff; border:1px solid #e9edf3; border-radius:10px; padding:28px;">
@@ -153,7 +154,7 @@ module.exports = {
 
           <p style="margin:0; font-size:12px; color:#64748b;">
             Salam,<br/>
-            <b>REZEKI MASJID APP</b>
+            <b>Rezeki Masjid APP</b>
           </p>
         </div>
       </div>
