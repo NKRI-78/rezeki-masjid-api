@@ -46,7 +46,20 @@ module.exports = {
   },
 
   toMosqueResponse(row) {
-    console.log(row);
+    function formatDistanceKm(val) {
+      if (val === null || val === undefined) return null;
+
+      const n = Number(val);
+      if (!Number.isFinite(n)) return null;
+
+      // Kalau 0 (atau sangat dekat 0 karena floating), anggap tidak ada jarak
+      if (n <= 0.0001) return null;
+
+      // Format: 2 desimal, hilangkan trailing .00
+      const s = n.toFixed(2).replace(/\.00$/, '');
+
+      return `${s} km`;
+    }
     return {
       id: row.id,
       name: row.name,

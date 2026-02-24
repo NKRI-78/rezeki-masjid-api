@@ -1,7 +1,6 @@
 const misc = require('../helpers/response');
-const { formatDistanceKm } = require('../helpers/utils');
+const { toMosqueResponse } = require('../helpers/utils');
 const Mosque = require('../models/Mosque');
-
 
 module.exports = {
   // GET /mosques?page=1&limit=10&search=abc&lat=-6.2&lng=106.8&sort=nearest&radius_km=5
