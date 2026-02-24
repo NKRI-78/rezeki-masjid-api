@@ -110,15 +110,54 @@ module.exports = {
     return String(+val).charAt(0) == val;
   },
 
+  validateEmail: (email) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+      );
+  },
+
   sendEmail: async (email, otp) => {
     await axios.post(process.env.EMAIL_URL, {
       to: email,
-      app: 'REZEKI MASJID',
-      subject: 'REZEKI MASJID',
-      body:
-        `<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2"><div style="margin:50px auto; width:70%; padding: 20px 0;"><p style="font-size:1.1em;">Hi,</p><p>Use the following OTP to complete your Sign Up procedures. OTP is valid for 2 minutes</p><h2 style="background: #00466a; margin: 0 auto; width: max-content; padding: 0 10px; color: #fff; border-radius: 4px;">` +
-        otp +
-        `</h2><p style="font-size:0.9em;">Regards, <br/>REZEKI MASJID</p><hr style="border:none;border-top:1px solid #eee" /></div></div>`,
+      app: 'RZM',
+      subject: 'Kode OTP Rezeki Masjid APP',
+      body: `
+      <div style="font-family: Helvetica, Arial, sans-serif; min-width:1000px; overflow:auto; line-height:1.8; background:#f6f8fb; padding:30px 0;">
+        <div style="margin:0 auto; width:70%; background:#ffffff; border:1px solid #e9edf3; border-radius:10px; padding:28px;">
+          <div style="border-bottom:1px solid #eef2f7; padding-bottom:14px; margin-bottom:18px;">
+            <h1 style="margin:0; font-size:18px; color:#0f172a;">RZM</h1>
+            <p style="margin:6px 0 0; color:#64748b; font-size:13px;">Verifikasi Akun</p>
+          </div>
+
+          <p style="margin:0 0 10px; font-size:14px; color:#111827;">Halo,</p>
+          <p style="margin:0 0 16px; font-size:14px; color:#111827;">
+            Berikut adalah <b>Kode OTP</b> untuk menyelesaikan proses <b>pendaftaran</b> / <b>verifikasi</b> akun Anda.
+          </p>
+
+          <div style="text-align:center; margin:22px 0;">
+            <div style="display:inline-block; background:#00466a; padding:10px 18px; border-radius:8px;">
+              <span style="color:#ffffff; font-size:22px; letter-spacing:4px; font-weight:700;">${otp}</span>
+            </div>
+            <p style="margin:10px 0 0; font-size:12px; color:#64748b;">
+              Kode ini berlaku selama <b>2 menit</b>.
+            </p>
+          </div>
+
+          <p style="margin:0 0 16px; font-size:13px; color:#111827;">
+            Jika Anda tidak merasa meminta kode ini, abaikan email ini. Demi keamanan, jangan pernah membagikan kode OTP kepada siapa pun.
+          </p>
+
+          <hr style="border:none; border-top:1px solid #eef2f7; margin:18px 0;" />
+
+          <p style="margin:0; font-size:12px; color:#64748b;">
+            Salam,<br/>
+            <b>REZEKI MASJID APP</b>
+          </p>
+        </div>
+      </div>
+    `,
     });
   },
 

@@ -111,4 +111,98 @@ module.exports = {
       misc.response(res, 400, true, e.message);
     }
   },
+
+  verifyOtp: async (req, res) => {
+    const { email, otp } = req.body;
+
+    try {
+      if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
+
+      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
+
+      if (!utils.validateEmail(email))
+        throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
+
+      var checkEmail = await Auth.checkEmail(email);
+
+      var isEmailAlreadyActive = await Auth.isEmailAlreadyActive(email);
+
+      if (isEmailAlreadyActive.length != 0) throw new Error('E-mail Address sudah aktif');
+
+      if (checkEmail.length != 0) {
+        var checkOtpIsValid = await Auth.checkOtp(email, otp);
+
+        if (checkOtpIsValid.length == 0) throw new Error('OTP salah');
+
+        var currentDate = new Date();
+        var otpCreated = checkOtpIsValid[0].created_at;
+        var diff = new Date(currentDate.getTime() - otpCreated.getTime());
+        if (diff.getMinutes() > 1) {
+          misc.response(res, 400, false, 'OTP kadaluwarsa');
+        } else {
+          await Auth.verifyOtp(email);
+
+          var payload = {
+            id: checkOtpIsValid[0].id,
+            authorized: true,
+          };
+
+          var token = jwt.sign(payload, process.env.JWT_SECRET);
+          var refreshToken = jwt.sign(payload, process.env.JWT_SECRET);
+
+          misc.response(res, 200, false, '', {
+            token: token,
+            refresh_token: refreshToken,
+            user: {
+              id: checkOtpIsValid[0].uid,
+              name: checkOtpIsValid[0].fullname,
+              email: checkOtpIsValid[0].email,
+              is_active: 'enabled',
+              phone: checkOtpIsValid[0].phone,
+              role: 'user',
+            },
+          });
+        }
+      } else {
+        misc.response(res, 400, false, 'Pengguna tidak ditemukan');
+      }
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
+
+  resendOtp: async (req, res) => {
+    const { email } = req.body;
+
+    var otp = generateOTP();
+
+    try {
+      if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
+
+      if (!utils.validateEmail(email))
+        throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
+
+      var isEmailAlreadyActive = await Auth.isEmailAlreadyActive(email);
+
+      if (isEmailAlreadyActive.length != 0) throw new Error('Alamat E-mail sudah aktif');
+
+      var checkEmail = await Auth.checkEmail(email);
+      if (checkEmail.length == 0) throw new Error(`Pengguna ${email} tidak ditemukan`);
+
+      await Auth.resendOtp(email, otp);
+
+      await utils.sendEmail(email, otp);
+
+      misc.response(
+        res,
+        200,
+        false,
+        `Berhasil mengirim ulang OTP, mohon periksa Alamat E-mail ${email}`,
+      );
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
 };
