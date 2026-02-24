@@ -3,7 +3,7 @@ const conn = require('../configs/db');
 module.exports = {
   login: (val) => {
     return new Promise((resolve, reject) => {
-      var query = `SELECT p.avatar, u.id, u.phone, r.name AS role, u.email, u.password, p.fullname
+      var query = `SELECT p.avatar, u.id, u.phone, u.is_active, r.name AS role, u.email, u.password, p.fullname
             FROM users u
             INNER JOIN profiles p ON u.id = p.user_id
             INNER JOIN roles r ON r.id = u.role
@@ -49,6 +49,34 @@ module.exports = {
   checkPhone: (phone) => {
     return new Promise((resolve, reject) => {
       const query = `SELECT phone FROM users WHERE phone = '${phone}'`;
+      conn.query(query, (e, res) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  },
+
+  insertOtp: (email, otp) => {
+    return new Promise((resolve, reject) => {
+      const query = `INSERT users (email, otp) VALUES ('${email}', '${otp}') 
+            ON DUPLICATE KEY UPDATE email = '${email}', otp = '${otp}', created_at = NOW()`;
+      conn.query(query, (e, res) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(res);
+        }
+      });
+    });
+  },
+  updateOtp: (otp, email) => {
+    return new Promise((resolve, reject) => {
+      const query = `UPDATE users 
+            SET otp = '${otp}', created_at = NOW(), updated_at = NOW()
+            WHERE email = '${email}'`;
       conn.query(query, (e, res) => {
         if (e) {
           reject(new Error(e));

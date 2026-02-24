@@ -23,10 +23,10 @@ module.exports = {
 
       var user = login[0];
 
-      //   if (user.is_active == 'disabled') {
-      // var otp = generateOTP();
-      // await Promise.race([Auth.updateOtp(otp, user.email), utils.sendEmail(user.email, otp)]);
-      //   }
+      if (user.is_active == 'disabled') {
+        var otp = generateOTP();
+        await Promise.race([Auth.updateOtp(otp, user.email), utils.sendEmail(user.email, otp)]);
+      }
 
       var passwordHash = await utils.checkPasswordEncrypt(password, user.password);
 
@@ -45,7 +45,6 @@ module.exports = {
         refresh_token: refreshToken,
         user: {
           id: user.id,
-          avatar: user.avatar,
           name: user.fullname,
           email: user.email,
           is_active: user.is_active,
@@ -81,7 +80,7 @@ module.exports = {
 
       var passwordHash = await utils.encryptPassword(password);
 
-      // await utils.sendEmail(email, otp);
+      await utils.sendEmail(email, otp);
 
       const insertId = await Auth.register(otp, phone, email, role, passwordHash);
 
@@ -102,6 +101,7 @@ module.exports = {
           id: insertId,
           name: fullname,
           email: email,
+          is_active: 'disabled',
           phone: phone,
           role: role == 1 ? 'admin' : 'user',
         },
