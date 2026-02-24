@@ -1,29 +1,24 @@
 const misc = require('../helpers/response');
+const { formatDistanceKm } = require('../helpers/utils');
 const Mosque = require('../models/Mosque');
 
-function toMosqueResponse(row) {
-  return {
-    id: row.id,
-    name: row.name,
-    path: row.path,
-    detail_address: row.detail_address,
-    lat: row.lat,
-    lng: row.lng,
-    created_at: row.created_at,
-    update_at: row.update_at,
-  };
-}
 
 module.exports = {
-  // GET /mosques?page=1&limit=10&search=abc
+  // GET /mosques?page=1&limit=10&search=abc&lat=-6.2&lng=106.8&sort=nearest&radius_km=5
   list: async (req, res) => {
     try {
       const page = req.query.page || 1;
       const limit = req.query.limit || 10;
       const search = req.query.search || '';
 
+      const lat = req.query.lat !== undefined ? Number(req.query.lat) : null;
+      const lng = req.query.lng !== undefined ? Number(req.query.lng) : null;
+
+      const sort = req.query.sort || 'latest'; // 'nearest' | 'latest'
+      const radius_km = req.query.radius_km !== undefined ? Number(req.query.radius_km) : null;
+
       const [rows, total] = await Promise.all([
-        Mosque.list({ page, limit, search }),
+        Mosque.list({ page, limit, search, lat, lng, sort, radius_km }),
         Mosque.count({ search }),
       ]);
 
@@ -70,6 +65,14 @@ module.exports = {
 
       if (!name) return misc.response(res, 400, true, 'name is required');
 
+      if (!path) return misc.response(res, 400, true, 'path is required');
+
+      if (!detail_address) return misc.response(res, 400, true, 'detail_address is required');
+
+      if (!lat) return misc.response(res, 400, true, 'lat is required');
+
+      if (!lng) return misc.response(res, 400, true, 'lng is required');
+
       const created = await Mosque.create({
         name,
         path,
@@ -96,7 +99,7 @@ module.exports = {
       const { name, path, detail_address, lat, lng } = req.body;
 
       const exists = await Mosque.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'Mosque not found');
+      if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
 
       const updated = await Mosque.update(id, {
         name,
@@ -125,7 +128,7 @@ module.exports = {
       const { id } = req.params;
 
       const exists = await Mosque.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'Mosque not found');
+      if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
 
       const deleted = await Mosque.remove(id);
 

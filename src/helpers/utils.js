@@ -45,6 +45,36 @@ module.exports = {
     return initials;
   },
 
+  toMosqueResponse(row) {
+    console.log(row);
+    return {
+      id: row.id,
+      name: row.name,
+      path: row.path,
+      detail_address: row.detail_address,
+      lat: row.lat,
+      lng: row.lng,
+      distance_km: formatDistanceKm(row.distance_km),
+      created_at: row.created_at,
+      update_at: row.update_at,
+    };
+  },
+
+  formatDistanceKm(val) {
+    if (val === null || val === undefined) return null;
+
+    const n = Number(val);
+    if (!Number.isFinite(n)) return null;
+
+    // Kalau 0 (atau sangat dekat 0 karena floating), anggap tidak ada jarak
+    if (n <= 0.0001) return null;
+
+    // Format: 2 desimal, hilangkan trailing .00
+    const s = n.toFixed(2).replace(/\.00$/, '');
+
+    return `${s} km`;
+  },
+
   fdate: (date) => {
     return moment(date).locale('id').format('dddd, d MMMM YYYY');
   },
