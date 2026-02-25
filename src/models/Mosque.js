@@ -89,6 +89,50 @@ module.exports = {
     });
   },
 
+  checkAssignProduct: (mosqueId, productId) => {
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `SELECT product_id, mosque_id 
+        FROM product_assigns 
+        WHERE mosque_id = ? 
+        AND product_id = ?`,
+        [mosqueId, productId],
+        (e, result) => {
+          if (e) reject(new Error(e));
+          else resolve(result);
+        },
+      );
+    });
+  },
+
+  assignProduct: (mosqueId, productId, needStuff) => {
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `INSERT INTO product_assigns (mosque_id, product_id, need_stuff) 
+        VALUES (?, ?, ?)`,
+        [mosqueId, productId, needStuff],
+        (e, result) => {
+          if (e) reject(new Error(e));
+          else resolve(result?.[0] || null);
+        },
+      );
+    });
+  },
+
+  updateAssignProduct: (needStuff, productId, mosqueId) => {
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `UPDATE product_assigns SET need_stuff = ?, product_id = ? 
+        WHERE mosque_id = ?`,
+        [needStuff, productId, mosqueId],
+        (e, result) => {
+          if (e) reject(new Error(e));
+          else resolve(result);
+        },
+      );
+    });
+  },
+
   detail: (id) => {
     return new Promise((resolve, reject) => {
       conn.query(`SELECT * FROM mosques WHERE id = ? LIMIT 1`, [id], (e, result) => {

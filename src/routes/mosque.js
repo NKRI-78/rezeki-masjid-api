@@ -4,6 +4,7 @@ const mosque = require('../controllers/mosque');
 router.get('/list', mosque.list);
 router.get('/:id', mosque.detail);
 router.post('/', mosque.create);
+router.post('/assign-product', mosque.assignProduct);
 router.put('/:id', mosque.update);
 router.delete('/:id', mosque.remove);
 

@@ -19,15 +19,18 @@ module.exports = {
           p.stock,
           p.created_at,
           p.update_at,
-
           m.id AS mosque_id,
           m.name AS mosque_name,
           m.path AS mosque_path,
           m.detail_address AS mosque_detail_address,
           m.lat AS mosque_lat,
-          m.lng AS mosque_lng
+          m.lng AS mosque_lng,
+          ms.id AS shop_id,
+          ms.name AS shop_name,
+          ms.is_active AS shop_active
         FROM products p
         LEFT JOIN mosques m ON m.id = p.mosque_id
+        LEFT JOIN mosque_shops ms ON ms.mosque_id = m.id
         WHERE (? = '' OR p.title LIKE ? OR p.content LIKE ?)
         ORDER BY p.id DESC
         LIMIT ? OFFSET ?

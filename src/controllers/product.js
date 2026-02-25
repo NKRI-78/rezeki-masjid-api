@@ -1,27 +1,6 @@
 const misc = require('../helpers/response');
+const { toProductResponse } = require('../helpers/utils');
 const Product = require('../models/Product');
-
-function toProductResponse(row) {
-  return {
-    id: row.id,
-    title: row.title,
-    content: row.content,
-    price: row.price,
-    stock: row.stock,
-    created_at: row.created_at,
-    update_at: row.update_at,
-    mosque: row.mosque_id
-      ? {
-          id: row.mosque_id,
-          name: row.mosque_name,
-          path: row.mosque_path,
-          detail_address: row.mosque_detail_address,
-          lat: row.mosque_lat,
-          lng: row.mosque_lng,
-        }
-      : null,
-  };
-}
 
 module.exports = {
   // GET /products?page=1&limit=10&search=abc
