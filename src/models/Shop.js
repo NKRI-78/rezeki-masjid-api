@@ -23,6 +23,10 @@ module.exports = {
         SELECT
           ms.id,
           ms.name,
+          ms.phone, 
+          ms.address,
+          ms.lat, 
+          ms.lng,
           ms.is_active,
           ms.created_at,
           ms.updated_at,
@@ -73,6 +77,10 @@ module.exports = {
         SELECT
           ms.id,
           ms.name,
+          ms.phone, 
+          ms.address,
+          ms.lat, 
+          ms.lng,
           ms.is_active,
           ms.created_at,
           ms.updated_at,
@@ -99,14 +107,14 @@ module.exports = {
   },
 
   // CREATE
-  create: ({ name, userId, is_active = 'enabled' }) => {
+  create: ({ name, phone, address, lat, lng, userId, is_active = 'enabled' }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO shops (name, user_id, is_active)
-        VALUES (?, ?, ?)
+        INSERT INTO shops (name, phone, address, lat, lng, user_id, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
 
-      conn.query(query, [name, userId, is_active], (e, result) => {
+      conn.query(query, [name, phone, address, lat, lng, userId, is_active], (e, result) => {
         if (e) return reject(new Error(e));
         resolve({
           insertId: result.insertId,
@@ -116,7 +124,7 @@ module.exports = {
   },
 
   // UPDATE
-  update: (id, { name, userId, is_active }) => {
+  update: (id, { name, phone, address, lat, lng, userId, is_active }) => {
     return new Promise((resolve, reject) => {
       const fields = [];
       const params = [];
@@ -124,6 +132,22 @@ module.exports = {
       if (name !== undefined) {
         fields.push('name = ?');
         params.push(name);
+      }
+      if (phone !== undefined) {
+        fields.push('phone = ?');
+        params.push(phone);
+      }
+      if (address !== undefined) {
+        fields.push('address = ?');
+        params.push(address);
+      }
+      if (lat !== undefined) {
+        fields.push('lat = ?');
+        params.push(lat);
+      }
+      if (lng !== undefined) {
+        fields.push('lng = ?');
+        params.push(lng);
       }
       if (userId !== undefined) {
         fields.push('user_id = ?');

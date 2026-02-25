@@ -19,7 +19,32 @@ module.exports = {
       const l = Number(limit) || 10;
       const totalPages = l === 0 ? 0 : Math.ceil(total / l);
 
-      const items = rows.map(toProductResponse);
+      var items = [];
+
+      for (const i in rows) {
+        var row = rows[i];
+
+        var media = await Product.getMedia({ product_id: row.id });
+
+        items.push({
+          id: row.id,
+          title: row.title,
+          media: media,
+          content: row.content,
+          price: row.price,
+          stock: row.stock,
+          weight: row.weight,
+          created_at: row.created_at,
+          update_at: row.update_at,
+          store: row.shop_id
+            ? {
+                id: row.shop_id,
+                name: row.shop_name,
+                is_active: row.shop_active,
+              }
+            : null,
+        });
+      }
 
       return misc.response(res, 200, false, 'OK', {
         items,
@@ -34,16 +59,56 @@ module.exports = {
     }
   },
 
+  // POST /products/media
+  media: async (req, res) => {
+    try {
+      const { product_id, path } = req.body;
+
+      if (product_id === undefined || product_id == null)
+        return misc.response(res, 400, true, 'product_id wajib diisi');
+      if (path === undefined || path === null)
+        return misc.response(res, 400, true, 'path wajib diisi');
+
+      await Product.media({ product_id, path });
+
+      return misc.response(res, 200, false, 'OK');
+    } catch (e) {
+      console.log(e);
+      return misc.response(res, 400, true, e.message);
+    }
+  },
+
   // GET /products/:id
   detail: async (req, res) => {
     try {
       const { id } = req.params;
 
       const row = await Product.detail(id);
-      if (!row) return misc.response(res, 404, true, 'Product not found');
+      if (!row) return misc.response(res, 404, true, 'Produk tidak ditemukan');
+
+      var media = await Product.getMedia({ product_id: row.id });
+
+      var data = {
+        id: row.id,
+        title: row.title,
+        media: media,
+        content: row.content,
+        price: row.price,
+        stock: row.stock,
+        weight: row.weight,
+        created_at: row.created_at,
+        update_at: row.update_at,
+        store: row.shop_id
+          ? {
+              id: row.shop_id,
+              name: row.shop_name,
+              is_active: row.shop_active,
+            }
+          : null,
+      };
 
       return misc.response(res, 200, false, 'OK', {
-        item: toProductResponse(row),
+        item: data,
       });
     } catch (e) {
       console.log(e);
@@ -54,15 +119,15 @@ module.exports = {
   // POST /products
   create: async (req, res) => {
     try {
-      const { title, content, price, stock, shop_id } = req.body;
+      const { title, content, price, stock, weight, shop_id } = req.body;
 
       // Validasi minimal
-      if (!title) return misc.response(res, 400, true, 'title is required');
+      if (!title) return misc.response(res, 400, true, 'title wajib diisi');
       if (price === undefined || price === null)
-        return misc.response(res, 400, true, 'price is required');
-      if (!shop_id) return misc.response(res, 400, true, 'shop_id is required');
+        return misc.response(res, 400, true, 'harga wajib diisi');
+      if (!shop_id) return misc.response(res, 400, true, 'shop_id wajib diisi');
 
-      const created = await Product.create({ title, content, price, stock, shop_id });
+      const created = await Product.create({ title, content, price, stock, weight, shop_id });
 
       // Ambil detail setelah insert supaya response nested mosque ikut kebawa
       const row = await Product.detail(created.id);
@@ -80,12 +145,12 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, content, price, stock, shop_id } = req.body;
+      const { title, content, price, stock, weight, shop_id } = req.body;
 
       const exists = await Product.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'Product not found');
+      if (!exists) return misc.response(res, 404, true, 'Produk tidak ditemukan');
 
-      const updated = await Product.update(id, { title, content, price, stock, shop_id });
+      const updated = await Product.update(id, { title, content, price, stock, weight, shop_id });
       if (!updated.affectedRows) return misc.response(res, 400, true, 'Failed to update');
 
       const row = await Product.detail(id);
@@ -105,7 +170,7 @@ module.exports = {
       const { id } = req.params;
 
       const exists = await Product.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'Product not found');
+      if (!exists) return misc.response(res, 404, true, 'Produk tidak ditemukan');
 
       const deleted = await Product.remove(id);
       if (!deleted.affectedRows) return misc.response(res, 400, true, 'Failed to delete');

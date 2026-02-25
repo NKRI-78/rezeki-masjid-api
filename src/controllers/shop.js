@@ -36,9 +36,13 @@ module.exports = {
     var userId = req.decoded.id;
 
     try {
-      const { name, is_active } = req.body;
+      const { name, phone, address, lat, lng, is_active } = req.body;
 
       if (!name) return misc.response(res, 400, true, 'nama wajib dibutuhkan');
+      if (!phone) return misc.response(res, 400, true, 'phone wajib dibutuhkan');
+      if (!address) return misc.response(res, 400, true, 'address wajib dibutuhkan');
+      if (!lat) return misc.response(res, 400, true, 'lat wajib dibutuhkan');
+      if (!lng) return misc.response(res, 400, true, 'lng wajib dibutuhkan');
       if (!userId) return misc.response(res, 400, true, 'user_id wajib dibutuhkan');
 
       if (is_active && !['enabled', 'disabled'].includes(is_active)) {
@@ -47,6 +51,10 @@ module.exports = {
 
       const created = await Shop.create({
         name,
+        phone,
+        address,
+        lat,
+        lng,
         userId,
         is_active: is_active || 'enabled',
       });
@@ -62,9 +70,11 @@ module.exports = {
 
   // PUT /shops/:id
   update: async (req, res) => {
+    var userId = req.decoded.id;
+
     try {
       const { id } = req.params;
-      const { name, user_id, is_active } = req.body;
+      const { name, phone, address, lat, lng, is_active } = req.body;
 
       const exists = await Shop.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
@@ -73,7 +83,7 @@ module.exports = {
         return misc.response(res, 400, true, "is_active harus 'enabled' atau 'disabled'");
       }
 
-      const updated = await Shop.update(id, { name, user_id, is_active });
+      const updated = await Shop.update(id, { name, phone, address, lat, lng, userId, is_active });
       if (!updated.affectedRows) {
         // ga ada field berubah
         const detail = await Shop.detail(id);

@@ -49,6 +49,10 @@ module.exports = {
     return {
       id: row.id,
       name: row.name,
+      phone: row.phone,
+      address: row.address,
+      lat: row.lat,
+      lng: row.lng,
       is_active: row.is_active,
       user: {
         id: row.user_id,
@@ -65,6 +69,7 @@ module.exports = {
       content: row.content,
       price: row.price,
       stock: row.stock,
+      weight: row.weight,
       created_at: row.created_at,
       update_at: row.update_at,
       store: row.shop_id

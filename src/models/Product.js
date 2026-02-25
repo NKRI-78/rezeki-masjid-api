@@ -17,6 +17,7 @@ module.exports = {
           p.content,
           p.price,
           p.stock,
+          p.weight,
           p.created_at,
           p.update_at,
           s.id AS shop_id,
@@ -64,6 +65,7 @@ module.exports = {
           p.content,
           p.price,
           p.stock,
+          p.weight,
           p.created_at,
           p.update_at,
           s.id AS shop_id,
@@ -82,17 +84,46 @@ module.exports = {
     });
   },
 
+  // GET MEDIA
+  getMedia: ({ product_id }) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT id, path FROM product_images WHERE product_id = ?`;
+
+      conn.query(query, [product_id], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result);
+      });
+    });
+  },
+
+  // MEDIA
+  media: (payload) => {
+    return new Promise((resolve, reject) => {
+      const { product_id, path } = payload;
+
+      const query = `
+        INSERT INTO product_images (product_id, path)
+        VALUES (?, ?)
+      `;
+
+      conn.query(query, [product_id, path], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve({ id: result.insertId });
+      });
+    });
+  },
+
   // CREATE
   create: (payload) => {
     return new Promise((resolve, reject) => {
-      const { title, content, price, stock, shop_id } = payload;
+      const { title, content, price, stock, weight, shop_id } = payload;
 
       const query = `
-        INSERT INTO products (title, content, price, stock, shop_id, created_at, update_at)
-        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+        INSERT INTO products (title, content, price, stock, weight, shop_id, created_at, update_at)
+        VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
       `;
 
-      conn.query(query, [title, content, price, stock, shop_id], (e, result) => {
+      conn.query(query, [title, content, price, stock, weight, shop_id], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ id: result.insertId });
       });
@@ -102,7 +133,7 @@ module.exports = {
   // UPDATE
   update: (id, payload) => {
     return new Promise((resolve, reject) => {
-      const { title, content, price, stock, shop_id } = payload;
+      const { title, content, price, stock, weight, shop_id } = payload;
 
       const query = `
         UPDATE products
@@ -112,11 +143,12 @@ module.exports = {
           price = ?,
           stock = ?,
           shop_id = ?,
+          weight = ?
           update_at = NOW()
         WHERE id = ?
       `;
 
-      conn.query(query, [title, content, price, stock, shop_id, id], (e, result) => {
+      conn.query(query, [title, content, price, stock, shop_id, weight, id], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ affectedRows: result.affectedRows });
       });
