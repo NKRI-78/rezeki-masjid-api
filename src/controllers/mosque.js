@@ -1,5 +1,5 @@
 const misc = require('../helpers/response');
-const { toMosqueResponse } = require('../helpers/utils');
+const { toMosqueResponse, formatDistanceKm } = require('../helpers/utils');
 const Mosque = require('../models/Mosque');
 const Product = require('../models/Product');
 
@@ -28,8 +28,19 @@ module.exports = {
 
       const items = rows.map(toMosqueResponse);
 
+      var data = [];
+
+      for (const i in items) {
+        var item = items[i];
+
+        var products = await Mosque.getAssignedProducts({ mosque_id: item.id });
+        item.product_needs = products;
+
+        data.push(item);
+      }
+
       return misc.response(res, 200, false, 'OK', {
-        items,
+        data,
         page: p,
         limit: l,
         total,
@@ -47,10 +58,25 @@ module.exports = {
       const { id } = req.params;
 
       const row = await Mosque.detail(id);
-      if (!row) return misc.response(res, 404, true, 'Mosque not found');
+      if (!row) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
+
+      var products = await Mosque.getAssignedProducts({ mosque_id: row.id });
+
+      var item = {
+        id: row.id,
+        name: row.name,
+        path: row.path,
+        detail_address: row.detail_address,
+        lat: row.lat,
+        lng: row.lng,
+        distance_km: formatDistanceKm(row.distance_km),
+        product_needs: products,
+        created_at: row.created_at,
+        update_at: row.update_at,
+      };
 
       return misc.response(res, 200, false, 'OK', {
-        item: toMosqueResponse(row),
+        item: item,
       });
     } catch (e) {
       console.log(e);
@@ -146,7 +172,7 @@ module.exports = {
 
   // POST /mosque/assign-product
   assignProduct: async (req, res) => {
-    const { mosque_id, product_id } = req.body;
+    const { product_id, mosque_id } = req.body;
     try {
       const exists = await Mosque.detail(mosque_id);
       if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
@@ -154,6 +180,21 @@ module.exports = {
       await Mosque.assignProduct(mosque_id, product_id);
 
       return misc.response(res, 201, false, 'Assigned', {});
+    } catch (e) {
+      console.log(e);
+      return misc.response(res, 400, true, e.message);
+    }
+  },
+
+  // PUT /mosque/toggle-product
+  toggleProduct: async (req, res) => {
+    const { product_id, mosque_id } = req.params;
+    const { is_active } = req.body;
+
+    try {
+      await Mosque.toggleActiveProduct(is_active, product_id, mosque_id);
+
+      return misc.response(res, 200, false, 'Toggle Product', {});
     } catch (e) {
       console.log(e);
       return misc.response(res, 400, true, e.message);

@@ -72,6 +72,23 @@ module.exports = {
     });
   },
 
+  getAssignedProducts: ({ mosque_id }) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT p.id, p.title, p.content, pa.is_active, p.price, p.stock
+        FROM products p
+        INNER JOIN product_assigns pa 
+        ON pa.product_id = p.id 
+        WHERE pa.mosque_id = ?
+      `;
+
+      conn.query(query, [mosque_id], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result);
+      });
+    });
+  },
+
   count: ({ search = '' }) => {
     return new Promise((resolve, reject) => {
       const keyword = `%${search}%`;
@@ -108,9 +125,23 @@ module.exports = {
   assignProduct: (mosqueId, productId, needStuff) => {
     return new Promise((resolve, reject) => {
       conn.query(
-        `INSERT INTO product_assigns (mosque_id, product_id, need_stuff) 
-        VALUES (?, ?, ?)`,
+        `INSERT INTO product_assigns (mosque_id, product_id) 
+        VALUES (?, ?)`,
         [mosqueId, productId, needStuff],
+        (e, result) => {
+          if (e) reject(new Error(e));
+          else resolve(result?.[0] || null);
+        },
+      );
+    });
+  },
+
+  toggleActiveProduct: (isActive, productId, mosqueId) => {
+    return new Promise((resolve, reject) => {
+      conn.query(
+        `UPDATE product_assigns SET is_active = ?
+        WHERE product_id = ? AND mosque_id = ?`,
+        [isActive, productId, mosqueId],
         (e, result) => {
           if (e) reject(new Error(e));
           else resolve(result?.[0] || null);
