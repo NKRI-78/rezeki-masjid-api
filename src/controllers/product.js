@@ -54,15 +54,15 @@ module.exports = {
   // POST /products
   create: async (req, res) => {
     try {
-      const { title, content, price, stock, mosque_id } = req.body;
+      const { title, content, price, stock, shop_id } = req.body;
 
       // Validasi minimal
       if (!title) return misc.response(res, 400, true, 'title is required');
       if (price === undefined || price === null)
         return misc.response(res, 400, true, 'price is required');
-      if (!mosque_id) return misc.response(res, 400, true, 'mosque_id is required');
+      if (!shop_id) return misc.response(res, 400, true, 'shop_id is required');
 
-      const created = await Product.create({ title, content, price, stock, mosque_id });
+      const created = await Product.create({ title, content, price, stock, shop_id });
 
       // Ambil detail setelah insert supaya response nested mosque ikut kebawa
       const row = await Product.detail(created.id);
@@ -80,12 +80,12 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, content, price, stock, mosque_id } = req.body;
+      const { title, content, price, stock, shop_id } = req.body;
 
       const exists = await Product.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Product not found');
 
-      const updated = await Product.update(id, { title, content, price, stock, mosque_id });
+      const updated = await Product.update(id, { title, content, price, stock, shop_id });
       if (!updated.affectedRows) return misc.response(res, 400, true, 'Failed to update');
 
       const row = await Product.detail(id);

@@ -22,7 +22,7 @@ module.exports = {
       const { id } = req.params;
 
       const shop = await Shop.detail(id);
-      if (!shop) return misc.response(res, 404, true, 'shop not found');
+      if (!shop) return misc.response(res, 404, true, 'Toko tidak ditemukan');
 
       misc.response(res, 200, false, 'OK', shop);
     } catch (e) {
@@ -33,20 +33,21 @@ module.exports = {
 
   // POST /shops
   create: async (req, res) => {
+    var userId = req.decoded.id;
+
     try {
-      const { name, mosque_id, is_active } = req.body;
+      const { name, is_active } = req.body;
 
-      if (!name) return misc.response(res, 400, true, 'name is required');
-      if (!mosque_id) return misc.response(res, 400, true, 'mosque_id is required');
+      if (!name) return misc.response(res, 400, true, 'nama wajib dibutuhkan');
+      if (!userId) return misc.response(res, 400, true, 'user_id wajib dibutuhkan');
 
-      // validasi enum
       if (is_active && !['enabled', 'disabled'].includes(is_active)) {
-        return misc.response(res, 400, true, "is_active must be 'enabled' or 'disabled'");
+        return misc.response(res, 400, true, "is_active harus 'enabled' atau 'disabled'");
       }
 
       const created = await Shop.create({
         name,
-        mosque_id,
+        userId,
         is_active: is_active || 'enabled',
       });
 
@@ -63,16 +64,16 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, mosque_id, is_active } = req.body;
+      const { name, user_id, is_active } = req.body;
 
       const exists = await Shop.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'shop not found');
+      if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
 
       if (is_active !== undefined && !['enabled', 'disabled'].includes(is_active)) {
-        return misc.response(res, 400, true, "is_active must be 'enabled' or 'disabled'");
+        return misc.response(res, 400, true, "is_active harus 'enabled' atau 'disabled'");
       }
 
-      const updated = await Shop.update(id, { name, mosque_id, is_active });
+      const updated = await Shop.update(id, { name, user_id, is_active });
       if (!updated.affectedRows) {
         // ga ada field berubah
         const detail = await Shop.detail(id);
@@ -93,10 +94,10 @@ module.exports = {
       const { id } = req.params;
 
       const exists = await Shop.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'shop not found');
+      if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
 
       const deleted = await Shop.delete(id);
-      if (!deleted.affectedRows) return misc.response(res, 400, true, 'failed to delete');
+      if (!deleted.affectedRows) return misc.response(res, 400, true, 'Failed to update');
 
       misc.response(res, 200, false, 'deleted', { id: Number(id) });
     } catch (e) {
@@ -113,11 +114,11 @@ module.exports = {
 
       if (!is_active) return misc.response(res, 400, true, 'is_active is required');
       if (!['enabled', 'disabled'].includes(is_active)) {
-        return misc.response(res, 400, true, "is_active must be 'enabled' or 'disabled'");
+        return misc.response(res, 400, true, "is_active harus 'enabled' atau 'disabled'");
       }
 
       const exists = await Shop.detail(id);
-      if (!exists) return misc.response(res, 404, true, 'shop not found');
+      if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
 
       await Shop.setActive(id, is_active);
 

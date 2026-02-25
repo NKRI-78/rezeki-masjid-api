@@ -3,10 +3,12 @@ const router = express.Router();
 
 const shop = require('../controllers/shop');
 
+const jwt = require('../middleware/jwt');
+
 router.get('/list', shop.list);
 router.get('/:id', shop.detail);
-router.post('/', shop.create);
-router.put('/:id', shop.update);
+router.post('/', jwt, shop.create);
+router.put('/:id', jwt, shop.update);
 router.delete('/:id', shop.delete);
 router.patch('/:id/active', shop.setActive);
 

@@ -50,16 +50,11 @@ module.exports = {
       id: row.id,
       name: row.name,
       is_active: row.is_active,
-      mosque: row.mosque_id
-        ? {
-            id: row.mosque_id,
-            name: row.mosque_name,
-            path: row.mosque_path,
-            detail_address: row.mosque_detail_address,
-            lat: row.mosque_lat,
-            lng: row.mosque_lng,
-          }
-        : null,
+      user: {
+        id: row.user_id,
+        name: row.user_fullname,
+        email: row.user_email,
+      },
     };
   },
 
@@ -72,16 +67,6 @@ module.exports = {
       stock: row.stock,
       created_at: row.created_at,
       update_at: row.update_at,
-      mosque: row.mosque_id
-        ? {
-            id: row.mosque_id,
-            name: row.mosque_name,
-            path: row.mosque_path,
-            detail_address: row.mosque_detail_address,
-            lat: row.mosque_lat,
-            lng: row.mosque_lng,
-          }
-        : null,
       store: row.shop_id
         ? {
             id: row.shop_id,

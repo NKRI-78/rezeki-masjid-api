@@ -19,22 +19,15 @@ module.exports = {
           p.stock,
           p.created_at,
           p.update_at,
-          m.id AS mosque_id,
-          m.name AS mosque_name,
-          m.path AS mosque_path,
-          m.detail_address AS mosque_detail_address,
-          m.lat AS mosque_lat,
-          m.lng AS mosque_lng,
-          ms.id AS shop_id,
-          ms.name AS shop_name,
-          ms.is_active AS shop_active
-        FROM products p
-        LEFT JOIN mosques m ON m.id = p.mosque_id
-        LEFT JOIN mosque_shops ms ON ms.mosque_id = m.id
-        WHERE (? = '' OR p.title LIKE ? OR p.content LIKE ?)
-        ORDER BY p.id DESC
-        LIMIT ? OFFSET ?
-      `;
+          s.id AS shop_id,
+          s.name AS shop_name,
+          s.is_active AS shop_active
+          FROM products p
+          LEFT JOIN shops s ON s.id = p.shop_id
+          WHERE (? = '' OR p.title LIKE ? OR p.content LIKE ?)
+          ORDER BY p.id DESC
+          LIMIT ? OFFSET ?
+        `;
 
       conn.query(query, [search, keyword, keyword, l, offset], (e, result) => {
         if (e) reject(new Error(e));
@@ -73,15 +66,11 @@ module.exports = {
           p.stock,
           p.created_at,
           p.update_at,
-
-          m.id AS mosque_id,
-          m.name AS mosque_name,
-          m.path AS mosque_path,
-          m.detail_address AS mosque_detail_address,
-          m.lat AS mosque_lat,
-          m.lng AS mosque_lng
+          s.id AS shop_id,
+          s.name AS shop_name,
+          s.is_active AS shop_active
         FROM products p
-        LEFT JOIN mosques m ON m.id = p.mosque_id
+        LEFT JOIN shops s ON s.id = p.shop_id
         WHERE p.id = ?
         LIMIT 1
       `;
@@ -96,14 +85,14 @@ module.exports = {
   // CREATE
   create: (payload) => {
     return new Promise((resolve, reject) => {
-      const { title, content, price, stock, mosque_id } = payload;
+      const { title, content, price, stock, shop_id } = payload;
 
       const query = `
-        INSERT INTO products (title, content, price, stock, mosque_id, created_at, update_at)
+        INSERT INTO products (title, content, price, stock, shop_id, created_at, update_at)
         VALUES (?, ?, ?, ?, ?, NOW(), NOW())
       `;
 
-      conn.query(query, [title, content, price, stock, mosque_id], (e, result) => {
+      conn.query(query, [title, content, price, stock, shop_id], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ id: result.insertId });
       });
@@ -113,7 +102,7 @@ module.exports = {
   // UPDATE
   update: (id, payload) => {
     return new Promise((resolve, reject) => {
-      const { title, content, price, stock, mosque_id } = payload;
+      const { title, content, price, stock, shop_id } = payload;
 
       const query = `
         UPDATE products
@@ -122,12 +111,12 @@ module.exports = {
           content = ?,
           price = ?,
           stock = ?,
-          mosque_id = ?,
+          shop_id = ?,
           update_at = NOW()
         WHERE id = ?
       `;
 
-      conn.query(query, [title, content, price, stock, mosque_id, id], (e, result) => {
+      conn.query(query, [title, content, price, stock, shop_id, id], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ affectedRows: result.affectedRows });
       });

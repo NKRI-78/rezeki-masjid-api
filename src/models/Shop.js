@@ -11,11 +11,11 @@ module.exports = {
 
       const keyword = `%${search}%`;
 
-      const where = search ? `WHERE (ms.name LIKE ? OR CAST(ms.mosque_id AS CHAR) LIKE ?)` : ``;
+      const where = search ? `WHERE (ms.name LIKE ?)` : ``;
 
       const countQuery = `
         SELECT COUNT(*) AS total
-        FROM mosque_shops ms
+        FROM shops ms
         ${where}
       `;
 
@@ -23,18 +23,18 @@ module.exports = {
         SELECT
           ms.id,
           ms.name,
-          ms.mosque_id,
           ms.is_active,
           ms.created_at,
           ms.updated_at,
-          m.id AS mosque_id,
-          m.path AS mosque_path,
-          m.name AS mosque_name,
-          m.detail_address AS mosque_detail_address,
-          m.lat AS mosque_lat,
-          m.lng AS mosque_lng
-        FROM mosque_shops ms
-        LEFT JOIN mosques m ON ms.mosque_id = m.id
+          p.user_id,
+          p.fullname AS user_fullname,
+          u.email AS user_email,
+          p.avatar AS user_avatar
+        FROM shops ms
+        LEFT JOIN profiles p 
+        ON p.user_id = ms.user_id
+        LEFT JOIN users u 
+        ON u.id = p.user_id
         ${where}
         ORDER BY ms.id DESC
         LIMIT ? OFFSET ?
@@ -76,14 +76,15 @@ module.exports = {
           ms.is_active,
           ms.created_at,
           ms.updated_at,
-          m.id AS mosque_id,
-          m.path AS mosque_path,
-          m.name AS mosque_name,
-          m.detail_address AS mosque_detail_address,
-          m.lat AS mosque_lat,
-          m.lng AS mosque_lng
-        FROM mosque_shops ms
-        LEFT JOIN mosques m ON m.id = ms.mosque_id
+          p.user_id,
+          p.fullname AS user_fullname,
+          u.email AS user_email,
+          p.avatar AS user_avatar
+        FROM shops ms
+        LEFT JOIN profiles p 
+        ON p.user_id = ms.user_id
+        LEFT JOIN users u 
+        ON u.id = p.user_id
         WHERE ms.id = ?
         LIMIT 1
       `;
@@ -98,14 +99,14 @@ module.exports = {
   },
 
   // CREATE
-  create: ({ name, mosque_id, is_active = 'enabled' }) => {
+  create: ({ name, userId, is_active = 'enabled' }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO mosque_shops (name, mosque_id, is_active)
+        INSERT INTO shops (name, user_id, is_active)
         VALUES (?, ?, ?)
       `;
 
-      conn.query(query, [name, mosque_id, is_active], (e, result) => {
+      conn.query(query, [name, userId, is_active], (e, result) => {
         if (e) return reject(new Error(e));
         resolve({
           insertId: result.insertId,
@@ -115,7 +116,7 @@ module.exports = {
   },
 
   // UPDATE
-  update: (id, { name, mosque_id, is_active }) => {
+  update: (id, { name, userId, is_active }) => {
     return new Promise((resolve, reject) => {
       const fields = [];
       const params = [];
@@ -124,9 +125,9 @@ module.exports = {
         fields.push('name = ?');
         params.push(name);
       }
-      if (mosque_id !== undefined) {
-        fields.push('mosque_id = ?');
-        params.push(mosque_id);
+      if (userId !== undefined) {
+        fields.push('user_id = ?');
+        params.push(userId);
       }
       if (is_active !== undefined) {
         fields.push('is_active = ?');
@@ -138,7 +139,7 @@ module.exports = {
       }
 
       const query = `
-        UPDATE mosque_shops
+        UPDATE shops
         SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `;
@@ -155,7 +156,7 @@ module.exports = {
   // DELETE
   delete: (id) => {
     return new Promise((resolve, reject) => {
-      const query = `DELETE FROM mosque_shops WHERE id = ?`;
+      const query = `DELETE FROM shops WHERE id = ?`;
       conn.query(query, [id], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ affectedRows: result.affectedRows });
@@ -167,7 +168,7 @@ module.exports = {
   setActive: (id, isActive) => {
     return new Promise((resolve, reject) => {
       const query = `
-        UPDATE mosque_shops
+        UPDATE shops
         SET is_active = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `;
