@@ -67,6 +67,14 @@ module.exports = {
     return width <= string.length ? string : pad(width, padding + string, padding);
   },
 
+  kgToGrams(val) {
+    return val * 1000;
+  },
+
+  gramsToKg(val) {
+    return val / 1000;
+  },
+
   toProductResponse(row) {
     return {
       id: row.id,

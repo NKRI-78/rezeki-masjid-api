@@ -175,19 +175,44 @@ module.exports = {
 
   create: (payload) => {
     return new Promise((resolve, reject) => {
-      const { name, description, path, detail_address, district, lat, lng } = payload;
+      const {
+        name,
+        description,
+        path,
+        detail_address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
+        lat,
+        lng,
+      } = payload;
 
       const query = `
-        INSERT INTO mosques (name, description, path, detail_address, district, lat, lng, created_at, update_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-      `;
+      INSERT INTO mosques 
+      (name, description, path, detail_address, province, city, district, subdistrict, zip_code, lat, lng, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+    `;
 
       conn.query(
         query,
-        [name, description, path, detail_address, district, lat, lng],
+        [
+          name,
+          description,
+          path,
+          detail_address,
+          province,
+          city,
+          district,
+          subdistrict,
+          zip_code,
+          lat,
+          lng,
+        ],
         (e, result) => {
-          if (e) reject(new Error(e));
-          else resolve({ id: result.insertId });
+          if (e) return reject(e);
+          resolve({ id: result.insertId });
         },
       );
     });
@@ -195,33 +220,61 @@ module.exports = {
 
   update: (id, payload) => {
     return new Promise((resolve, reject) => {
-      const { name, description, path, detail_address, district, lat, lng } = payload;
+      const {
+        name,
+        description,
+        path,
+        detail_address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
+        lat,
+        lng,
+      } = payload;
 
       const query = `
-        UPDATE mosques
-        SET
-          name = ?,
-          description = ?,
-          path = ?,
-          detail_address = ?,
-          district = ?,
-          lat = ?,
-          lng = ?,
-          update_at = NOW()
-        WHERE id = ?
-      `;
+      UPDATE mosques
+      SET
+        name = ?,
+        description = ?,
+        path = ?,
+        detail_address = ?,
+        province = ?,
+        city = ?,
+        district = ?,
+        subdistrict = ?,
+        zip_code = ?,
+        lat = ?,
+        lng = ?,
+        updated_at = NOW()
+      WHERE id = ?
+    `;
 
       conn.query(
         query,
-        [name, description, path, detail_address, district, lat, lng, id],
+        [
+          name,
+          description,
+          path,
+          detail_address,
+          province,
+          city,
+          district,
+          subdistrict,
+          zip_code,
+          lat,
+          lng,
+          id,
+        ],
         (e, result) => {
-          if (e) reject(new Error(e));
-          else resolve({ affectedRows: result.affectedRows });
+          if (e) return reject(e);
+          resolve({ affectedRows: result.affectedRows });
         },
       );
     });
   },
-
   remove: (id) => {
     return new Promise((resolve, reject) => {
       conn.query(`DELETE FROM mosques WHERE id = ?`, [id], (e, result) => {

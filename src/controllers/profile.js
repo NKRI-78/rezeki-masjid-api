@@ -8,9 +8,9 @@ const { generateOTP } = require('../configs/otp');
 
 module.exports = {
   me: async (req, res) => {
-    try {
-      var userId = req.decoded.id;
+    var userId = req.decoded.id;
 
+    try {
       const user = await User.me(userId);
 
       if (!user) throw new Error('Pengguna tidak ditemukan');

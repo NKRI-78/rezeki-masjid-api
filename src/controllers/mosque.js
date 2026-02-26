@@ -127,18 +127,30 @@ module.exports = {
   // POST /mosque
   create: async (req, res) => {
     try {
-      const { name, description, path, detail_address, lat, lng } = req.body;
+      const {
+        name,
+        description,
+        path,
+        detail_address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
+        lat,
+        lng,
+      } = req.body;
 
       if (!name) return misc.response(res, 400, true, 'nama wajib diisi');
-
       if (!description) return misc.response(res, 400, true, 'deskripsi wajib diisi');
-
       if (!path) return misc.response(res, 400, true, 'path wajib diisi');
-
       if (!detail_address) return misc.response(res, 400, true, 'detail alamat wajib diisi');
-
+      if (!province) return misc.response(res, 400, true, 'provinsi wajib diisi');
+      if (!city) return misc.response(res, 400, true, 'city wajib diisi');
+      if (!district) return misc.response(res, 400, true, 'district wajib diisi');
+      if (!subdistrict) return misc.response(res, 400, true, 'subdistrict wajib diisi');
+      if (!zip_code) return misc.response(res, 400, true, 'zip_code wajib diisi');
       if (!lat) return misc.response(res, 400, true, 'lat wajib diisi');
-
       if (!lng) return misc.response(res, 400, true, 'lng wajib diisi');
 
       const created = await Mosque.create({
@@ -146,6 +158,11 @@ module.exports = {
         description,
         path,
         detail_address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
         lat,
         lng,
       });
@@ -165,7 +182,19 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, description, path, detail_address, lat, lng } = req.body;
+      const {
+        name,
+        description,
+        path,
+        detail_address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
+        lat,
+        lng,
+      } = req.body;
 
       const exists = await Mosque.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
@@ -175,6 +204,11 @@ module.exports = {
         description,
         path,
         detail_address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
         lat,
         lng,
       });

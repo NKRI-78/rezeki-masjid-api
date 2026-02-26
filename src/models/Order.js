@@ -66,7 +66,48 @@ module.exports = {
     });
   },
 
-  // Invoice
+  selectShopDistrict: (shop_id) => {
+    const query = `SELECT district FROM shops WHERE id = ?`;
+
+    return new Promise((resolve, reject) => {
+      conn.query(query, [shop_id], (e, result) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  },
+
+  selectMosqueDistrict: (mosque_id) => {
+    const query = `SELECT district FROM mosques WHERE id = ?`;
+
+    return new Promise((resolve, reject) => {
+      conn.query(query, [mosque_id], (e, result) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  },
+
+  getTariffCode: (subdistrict) => {
+    var query = `SELECT tariff_code FROM jne_destinations WHERE district_name = ?`;
+
+    return new Promise((resolve, reject) => {
+      conn.query(query, [subdistrict], (e, result) => {
+        if (e) {
+          reject(new Error(e));
+        } else {
+          resolve(result[0].tariff_code);
+        }
+      });
+    });
+  },
+
   invoice: (invoiceValue) => {
     return new Promise((resolve, reject) => {
       const query = `SELECT * FROM orders WHERE date_value = '${invoiceValue}' ORDER BY no DESC LIMIT 1`;
@@ -78,7 +119,6 @@ module.exports = {
     });
   },
 
-  // Order Item
   orderItem: (invoiceId) => {
     return new Promise((resolve, reject) => {
       const query = `
@@ -95,7 +135,6 @@ module.exports = {
     });
   },
 
-  // DETAIL by invoice
   detail: (invoice) => {
     return new Promise((resolve, reject) => {
       const inv = String(invoice || '').trim();
@@ -117,7 +156,21 @@ module.exports = {
     });
   },
 
-  // CREATE ORDER
+  updatePayment: (orderId, status) => {
+    return new Promise((resolve, reject) => {
+      const inv = String(invoice || '').trim();
+
+      const query = `
+        UPDATE orders SET status = ? WHERE invoice = ?
+      `;
+
+      conn.query(query, [status, orderId], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result?.[0] || null);
+      });
+    });
+  },
+
   create: ({ invoice, no, date_value, amount, user_id }) => {
     return new Promise((resolve, reject) => {
       const query = `
@@ -134,7 +187,6 @@ module.exports = {
     });
   },
 
-  // CREATE ORDER ITEM
   createOrderItem: ({ invoice, product_id, qty }) => {
     return new Promise((resolve, reject) => {
       const query = `
@@ -151,7 +203,6 @@ module.exports = {
     });
   },
 
-  // UPDATE by invoice (partial update)
   update: (invoice, payload) => {
     return new Promise((resolve, reject) => {
       const inv = String(invoice || '').trim();
@@ -198,7 +249,6 @@ module.exports = {
     });
   },
 
-  // DELETE by invoice
   remove: (invoice) => {
     return new Promise((resolve, reject) => {
       const inv = String(invoice || '').trim();

@@ -5,7 +5,9 @@ const jwt = require('../middleware/jwt');
 
 router.get('/list', jwt, order.list);
 router.get('/:invoice', order.detail);
+router.post('/courier-cost', order.courierCost);
 router.post('/', jwt, order.create);
+router.post('/callback', order.callback);
 router.delete('/:invoice', order.remove);
 
 module.exports = router;

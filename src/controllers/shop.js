@@ -36,12 +36,28 @@ module.exports = {
     var userId = req.decoded.id;
 
     try {
-      const { name, phone, address, district, lat, lng, is_active } = req.body;
+      const {
+        name,
+        phone,
+        address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
+        lat,
+        lng,
+        is_active,
+      } = req.body;
 
       if (!name) return misc.response(res, 400, true, 'nama wajib dibutuhkan');
       if (!phone) return misc.response(res, 400, true, 'phone wajib dibutuhkan');
       if (!address) return misc.response(res, 400, true, 'address wajib dibutuhkan');
+      if (!province) return misc.response(res, 400, true, 'province wajib dibutuhkan');
+      if (!city) return misc.response(res, 400, true, 'city wajib dibutuhkan');
       if (!district) return misc.response(res, 400, true, 'district wajib dibutuhkan');
+      if (!subdistrict) return misc.response(res, 400, true, 'subdistrict wajib dibutuhkan');
+      if (!zip_code) return misc.response(res, 400, true, 'zip_code wajib dibutuhkan');
       if (!lat) return misc.response(res, 400, true, 'lat wajib dibutuhkan');
       if (!lng) return misc.response(res, 400, true, 'lng wajib dibutuhkan');
       if (!userId) return misc.response(res, 400, true, 'user_id wajib dibutuhkan');
@@ -54,6 +70,11 @@ module.exports = {
         name,
         phone,
         address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
         lat,
         lng,
         userId,
@@ -75,7 +96,19 @@ module.exports = {
 
     try {
       const { id } = req.params;
-      const { name, phone, address, district, lat, lng, is_active } = req.body;
+      const {
+        name,
+        phone,
+        address,
+        province,
+        city,
+        district,
+        subdistrict,
+        zip_code,
+        lat,
+        lng,
+        is_active,
+      } = req.body;
 
       const exists = await Shop.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
@@ -88,7 +121,11 @@ module.exports = {
         name,
         phone,
         address,
+        province,
+        city,
         district,
+        subdistrict,
+        zip_code,
         lat,
         lng,
         userId,

@@ -108,25 +108,70 @@ module.exports = {
     });
   },
 
-  // CREATE
-  create: ({ name, phone, address, lat, lng, userId, is_active = 'enabled' }) => {
+  create: ({
+    name,
+    phone,
+    address,
+    province,
+    city,
+    district,
+    subdistrict,
+    zip_code,
+    lat,
+    lng,
+    userId,
+    is_active = 'enabled',
+  }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO shops (name, phone, address, lat, lng, user_id, is_active)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `;
+      INSERT INTO shops 
+      (name, phone, address, province, city, district, subdistrict, zip_code, lat, lng, user_id, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-      conn.query(query, [name, phone, address, lat, lng, userId, is_active], (e, result) => {
-        if (e) return reject(new Error(e));
-        resolve({
-          insertId: result.insertId,
-        });
-      });
+      conn.query(
+        query,
+        [
+          name,
+          phone,
+          address,
+          province,
+          city,
+          district,
+          subdistrict,
+          zip_code,
+          lat,
+          lng,
+          userId,
+          is_active,
+        ],
+        (e, result) => {
+          if (e) return reject(e);
+          resolve({
+            insertId: result.insertId,
+          });
+        },
+      );
     });
   },
 
-  // UPDATE
-  update: (id, { name, phone, address, district, lat, lng, userId, is_active }) => {
+  update: (
+    id,
+    {
+      name,
+      phone,
+      address,
+      province,
+      city,
+      district,
+      subdistrict,
+      zip_code,
+      lat,
+      lng,
+      userId,
+      is_active,
+    },
+  ) => {
     return new Promise((resolve, reject) => {
       const fields = [];
       const params = [];
@@ -135,30 +180,57 @@ module.exports = {
         fields.push('name = ?');
         params.push(name);
       }
+
       if (phone !== undefined) {
         fields.push('phone = ?');
         params.push(phone);
       }
+
       if (address !== undefined) {
         fields.push('address = ?');
         params.push(address);
       }
+
+      if (province !== undefined) {
+        fields.push('province = ?');
+        params.push(province);
+      }
+
+      if (city !== undefined) {
+        fields.push('city = ?');
+        params.push(city);
+      }
+
       if (district !== undefined) {
         fields.push('district = ?');
         params.push(district);
       }
+
+      if (subdistrict !== undefined) {
+        fields.push('subdistrict = ?');
+        params.push(subdistrict);
+      }
+
+      if (zip_code !== undefined) {
+        fields.push('zip_code = ?');
+        params.push(zip_code);
+      }
+
       if (lat !== undefined) {
         fields.push('lat = ?');
         params.push(lat);
       }
+
       if (lng !== undefined) {
         fields.push('lng = ?');
         params.push(lng);
       }
+
       if (userId !== undefined) {
         fields.push('user_id = ?');
         params.push(userId);
       }
+
       if (is_active !== undefined) {
         fields.push('is_active = ?');
         params.push(is_active);
@@ -169,16 +241,16 @@ module.exports = {
       }
 
       const query = `
-        UPDATE shops
-        SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-      `;
+      UPDATE shops
+      SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `;
 
       params.push(id);
 
       conn.query(query, params, (e, result) => {
-        if (e) reject(new Error(e));
-        else resolve({ affectedRows: result.affectedRows });
+        if (e) return reject(e);
+        resolve({ affectedRows: result.affectedRows });
       });
     });
   },

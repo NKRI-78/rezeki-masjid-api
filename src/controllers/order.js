@@ -1,14 +1,16 @@
+const qs = require('qs');
 const moment = require('moment');
 const misc = require('../helpers/response');
 const Order = require('../models/Order');
-const Product = require('../models/Product');
 const User = require('../models/User');
+const { default: axios } = require('axios');
+const { kgToGrams, gramsToKg } = require('../helpers/utils');
 
 module.exports = {
   list: async (req, res) => {
-    try {
-      const userId = req.decoded.id;
+    const userId = req.decoded.id;
 
+    try {
       const { page = 1, limit = 10, search = '', status } = req.query;
 
       const rows = await Order.list({ page, limit, search, status, user_id: userId });
@@ -50,7 +52,19 @@ module.exports = {
     }
   },
 
-  courierCost: async (req, res) => {},
+  callback: async (req, res) => {
+    try {
+      const { order_id, status } = req.body;
+      if (status == 'PAID') {
+        await Order.updatePayment(order_id, status);
+      }
+
+      misc.response(res, 200, false, 'Callback called');
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
 
   detail: async (req, res) => {
     try {
@@ -86,10 +100,10 @@ module.exports = {
   },
 
   create: async (req, res) => {
-    try {
-      const { items, amount } = req.body;
+    const userId = req.decoded.id;
 
-      const userId = req.decoded.id;
+    try {
+      const { items, channel_id, amount } = req.body;
 
       const invoiceDate = moment().format('YYYYMMDD');
 
@@ -120,7 +134,7 @@ module.exports = {
         orderId: invoiceValue,
         amount: amount,
         app: 'REZEKI MASJID',
-        callbackUrl: '',
+        callbackUrl: process.env.CALLBACK,
       };
 
       const config = {
@@ -134,6 +148,49 @@ module.exports = {
       misc.response(res, 201, false, 'created', {
         invoice: created.invoice,
       });
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
+
+  courierCost: async (req, res) => {
+    try {
+      const { mosque_id, items } = req.body;
+
+      var weight = 0;
+
+      for (const i in items) {
+        var item = items[i];
+        weight += parseInt(item.weight);
+      }
+
+      const selectMosqueDistrict = await Order.selectMosqueDistrict(mosque_id);
+
+      const destinationTariffCode = await Order.getTariffCode(selectMosqueDistrict[0].district);
+
+      const body = new URLSearchParams({
+        username: process.env.USERNAME_JNE,
+        api_key: process.env.KEY_API_JNE,
+        from: 'CGK10000', // JAKARTA
+        thru: destinationTariffCode,
+        weight: gramsToKg(weight),
+      }).toString();
+
+      const config = {
+        method: 'POST',
+        url: process.env.CHECK_COST_JNE,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+          'User-Agent': 'RZKMSJD/1.x',
+        },
+        data: body,
+      };
+
+      const result = await axios(config);
+
+      misc.response(res, 200, false, 'OK', result.data.price);
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);
