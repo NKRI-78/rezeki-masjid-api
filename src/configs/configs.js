@@ -22,5 +22,15 @@ module.exports = {
       timezone: '+07:00',
     },
   },
+  database_raja_ongkir: {
+    mysql: {
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT,
+      database: 'raja_ongkir',
+      timezone: '+07:00',
+    },
+  },
   port: process.env.PORT,
 };

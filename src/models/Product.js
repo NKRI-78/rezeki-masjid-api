@@ -136,17 +136,17 @@ module.exports = {
       const { title, content, price, stock, weight, shop_id } = payload;
 
       const query = `
-        UPDATE products
-        SET
-          title = ?,
-          content = ?,
-          price = ?,
-          stock = ?,
-          shop_id = ?,
-          weight = ?
-          updated_at = NOW()
-        WHERE id = ?
-      `;
+      UPDATE products
+      SET
+        title = ?,
+        content = ?,
+        price = ?,
+        stock = ?,
+        shop_id = ?,
+        weight = ?,
+        updated_at = NOW()
+      WHERE id = ?
+    `;
 
       conn.query(query, [title, content, price, stock, shop_id, weight, id], (e, result) => {
         if (e) reject(new Error(e));

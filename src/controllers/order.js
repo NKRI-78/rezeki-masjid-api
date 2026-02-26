@@ -50,6 +50,8 @@ module.exports = {
     }
   },
 
+  courierCost: async (req, res) => {},
+
   detail: async (req, res) => {
     try {
       const { invoice } = req.params;
