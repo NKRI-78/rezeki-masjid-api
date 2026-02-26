@@ -175,23 +175,27 @@ module.exports = {
 
   create: (payload) => {
     return new Promise((resolve, reject) => {
-      const { name, description, path, detail_address, lat, lng } = payload;
+      const { name, description, path, detail_address, district, lat, lng } = payload;
 
       const query = `
-        INSERT INTO mosques (name, description, path, detail_address, lat, lng, created_at, update_at)
-        VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+        INSERT INTO mosques (name, description, path, detail_address, district, lat, lng, created_at, update_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
       `;
 
-      conn.query(query, [name, description, path, detail_address, lat, lng], (e, result) => {
-        if (e) reject(new Error(e));
-        else resolve({ id: result.insertId });
-      });
+      conn.query(
+        query,
+        [name, description, path, detail_address, district, lat, lng],
+        (e, result) => {
+          if (e) reject(new Error(e));
+          else resolve({ id: result.insertId });
+        },
+      );
     });
   },
 
   update: (id, payload) => {
     return new Promise((resolve, reject) => {
-      const { name, description, path, detail_address, lat, lng } = payload;
+      const { name, description, path, detail_address, district, lat, lng } = payload;
 
       const query = `
         UPDATE mosques
@@ -200,16 +204,21 @@ module.exports = {
           description = ?,
           path = ?,
           detail_address = ?,
+          district = ?,
           lat = ?,
           lng = ?,
           update_at = NOW()
         WHERE id = ?
       `;
 
-      conn.query(query, [name, description, path, detail_address, lat, lng, id], (e, result) => {
-        if (e) reject(new Error(e));
-        else resolve({ affectedRows: result.affectedRows });
-      });
+      conn.query(
+        query,
+        [name, description, path, detail_address, district, lat, lng, id],
+        (e, result) => {
+          if (e) reject(new Error(e));
+          else resolve({ affectedRows: result.affectedRows });
+        },
+      );
     });
   },
 

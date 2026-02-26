@@ -36,11 +36,12 @@ module.exports = {
     var userId = req.decoded.id;
 
     try {
-      const { name, phone, address, lat, lng, is_active } = req.body;
+      const { name, phone, address, district, lat, lng, is_active } = req.body;
 
       if (!name) return misc.response(res, 400, true, 'nama wajib dibutuhkan');
       if (!phone) return misc.response(res, 400, true, 'phone wajib dibutuhkan');
       if (!address) return misc.response(res, 400, true, 'address wajib dibutuhkan');
+      if (!district) return misc.response(res, 400, true, 'district wajib dibutuhkan');
       if (!lat) return misc.response(res, 400, true, 'lat wajib dibutuhkan');
       if (!lng) return misc.response(res, 400, true, 'lng wajib dibutuhkan');
       if (!userId) return misc.response(res, 400, true, 'user_id wajib dibutuhkan');
@@ -74,7 +75,7 @@ module.exports = {
 
     try {
       const { id } = req.params;
-      const { name, phone, address, lat, lng, is_active } = req.body;
+      const { name, phone, address, district, lat, lng, is_active } = req.body;
 
       const exists = await Shop.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
@@ -83,9 +84,17 @@ module.exports = {
         return misc.response(res, 400, true, "is_active harus 'enabled' atau 'disabled'");
       }
 
-      const updated = await Shop.update(id, { name, phone, address, lat, lng, userId, is_active });
+      const updated = await Shop.update(id, {
+        name,
+        phone,
+        address,
+        district,
+        lat,
+        lng,
+        userId,
+        is_active,
+      });
       if (!updated.affectedRows) {
-        // ga ada field berubah
         const detail = await Shop.detail(id);
         return misc.response(res, 200, false, 'no changes', detail);
       }

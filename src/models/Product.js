@@ -144,7 +144,7 @@ module.exports = {
           stock = ?,
           shop_id = ?,
           weight = ?
-          update_at = NOW()
+          updated_at = NOW()
         WHERE id = ?
       `;
 

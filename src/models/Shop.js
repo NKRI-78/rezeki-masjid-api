@@ -25,6 +25,7 @@ module.exports = {
           ms.name,
           ms.phone, 
           ms.address,
+          ms.district,
           ms.lat, 
           ms.lng,
           ms.is_active,
@@ -79,6 +80,7 @@ module.exports = {
           ms.name,
           ms.phone, 
           ms.address,
+          ms.district,
           ms.lat, 
           ms.lng,
           ms.is_active,
@@ -124,7 +126,7 @@ module.exports = {
   },
 
   // UPDATE
-  update: (id, { name, phone, address, lat, lng, userId, is_active }) => {
+  update: (id, { name, phone, address, district, lat, lng, userId, is_active }) => {
     return new Promise((resolve, reject) => {
       const fields = [];
       const params = [];
@@ -140,6 +142,10 @@ module.exports = {
       if (address !== undefined) {
         fields.push('address = ?');
         params.push(address);
+      }
+      if (district !== undefined) {
+        fields.push('district = ?');
+        params.push(district);
       }
       if (lat !== undefined) {
         fields.push('lat = ?');
