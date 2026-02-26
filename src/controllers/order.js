@@ -99,7 +99,7 @@ module.exports = {
 
       if (invoiceData.length != 0) counterNumber = parseInt(invoiceData[0].no) + 1;
 
-      var invoiceValue = `RJKMSJD${invoiceDate}-00000${counterNumber}`;
+      var invoiceValue = `RZKMSJD${invoiceDate}-00000${counterNumber}`;
 
       var order = await Order.create({
         invoice: invoiceValue,
@@ -114,6 +114,20 @@ module.exports = {
 
         await Order.createOrderItem({ invoice: order, product_id: item.product_id, qty: item.qty });
       }
+
+      const payload = {
+        channel_id: channel_id,
+        orderId: invoiceValue,
+        amount: amount,
+        app: 'REZEKI MASJID',
+        callbackUrl: '',
+      };
+
+      const config = {
+        method: 'POST',
+        url: process.env.PAY_MIDTRANS,
+        data: payload,
+      };
 
       const created = await Order.detail(invoiceValue);
 

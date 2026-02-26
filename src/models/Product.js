@@ -119,7 +119,7 @@ module.exports = {
       const { title, content, price, stock, weight, shop_id } = payload;
 
       const query = `
-        INSERT INTO products (title, content, price, stock, weight, shop_id, created_at, update_at)
+        INSERT INTO products (title, content, price, stock, weight, shop_id, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
       `;
 
