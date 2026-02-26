@@ -178,6 +178,7 @@ module.exports = {
       const {
         name,
         description,
+        phone,
         path,
         detail_address,
         province,
@@ -191,8 +192,8 @@ module.exports = {
 
       const query = `
       INSERT INTO mosques 
-      (name, description, path, detail_address, province, city, district, subdistrict, zip_code, lat, lng, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      (name, description, phone, path, detail_address, province, city, district, subdistrict, zip_code, lat, lng, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     `;
 
       conn.query(
@@ -200,6 +201,7 @@ module.exports = {
         [
           name,
           description,
+          phone,
           path,
           detail_address,
           province,
@@ -223,6 +225,7 @@ module.exports = {
       const {
         name,
         description,
+        phone,
         path,
         detail_address,
         province,
@@ -239,6 +242,7 @@ module.exports = {
       SET
         name = ?,
         description = ?,
+        phone = ?,
         path = ?,
         detail_address = ?,
         province = ?,
@@ -257,6 +261,7 @@ module.exports = {
         [
           name,
           description,
+          phone,
           path,
           detail_address,
           province,

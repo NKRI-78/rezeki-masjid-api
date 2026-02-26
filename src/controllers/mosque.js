@@ -107,12 +107,17 @@ module.exports = {
         description: row.description,
         path: row.path,
         detail_address: row.detail_address,
+        province: row.province,
+        city: row.city,
+        district: row.district,
+        subdistrict: row.subdistrict,
+        zip_code: row.zip_code,
         lat: row.lat,
         lng: row.lng,
         distance_km: formatDistanceKm(row.distance_km),
         product_needs: dataProduct,
         created_at: row.created_at,
-        update_at: row.update_at,
+        updated_at: row.updated_at,
       };
 
       return misc.response(res, 200, false, 'OK', {
@@ -130,6 +135,7 @@ module.exports = {
       const {
         name,
         description,
+        phone,
         path,
         detail_address,
         province,
@@ -143,6 +149,7 @@ module.exports = {
 
       if (!name) return misc.response(res, 400, true, 'nama wajib diisi');
       if (!description) return misc.response(res, 400, true, 'deskripsi wajib diisi');
+      if (!phone) return misc.response(res, 400, true, 'phone wajib diisi');
       if (!path) return misc.response(res, 400, true, 'path wajib diisi');
       if (!detail_address) return misc.response(res, 400, true, 'detail alamat wajib diisi');
       if (!province) return misc.response(res, 400, true, 'provinsi wajib diisi');
@@ -156,6 +163,7 @@ module.exports = {
       const created = await Mosque.create({
         name,
         description,
+        phone,
         path,
         detail_address,
         province,
@@ -185,6 +193,7 @@ module.exports = {
       const {
         name,
         description,
+        phone,
         path,
         detail_address,
         province,
@@ -202,6 +211,7 @@ module.exports = {
       const updated = await Mosque.update(id, {
         name,
         description,
+        phone,
         path,
         detail_address,
         province,

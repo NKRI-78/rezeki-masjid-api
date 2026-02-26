@@ -31,7 +31,7 @@ module.exports = {
       const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
       const queryItems = `
-      SELECT o.id, o.invoice, o.amount, o.user_id, o.status
+      SELECT o.*
       FROM orders o
       ${whereClause}
       ORDER BY o.id DESC
@@ -62,6 +62,22 @@ module.exports = {
             total_pages,
           });
         });
+      });
+    });
+  },
+
+  detail: (invoice) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT o.*
+        FROM orders o
+        WHERE o.invoice = ?
+        LIMIT 1;
+      `;
+
+      conn.query(query, [invoice], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result?.[0] || null);
       });
     });
   },
@@ -135,7 +151,7 @@ module.exports = {
     });
   },
 
-  detail: (invoice) => {
+  orderUpdate: () => {
     return new Promise((resolve, reject) => {
       const inv = String(invoice || '').trim();
 
@@ -171,14 +187,14 @@ module.exports = {
     });
   },
 
-  create: ({ invoice, no, date_value, amount, user_id }) => {
+  create: ({ invoice, no, jne_price, jne_service_code, date_value, user_id }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO orders (invoice, no, date_value, amount, user_id)
-        VALUES (?, ?, ?, ?, ?);
+        INSERT INTO orders (invoice, no, jne_price, jne_service_code, date_value, user_id)
+        VALUES (?, ?, ?, ?, ?, ?);
       `;
 
-      const params = [invoice, no, date_value, amount, user_id];
+      const params = [invoice, no, jne_price, jne_service_code, date_value, user_id];
 
       conn.query(query, params, (e, result) => {
         if (e) reject(new Error(e));
@@ -203,46 +219,27 @@ module.exports = {
     });
   },
 
-  update: (invoice, payload) => {
+  update: (payload) => {
     return new Promise((resolve, reject) => {
-      const inv = String(invoice || '').trim();
-
-      const fields = [];
-      const values = [];
-
-      if (payload.amount !== undefined) {
-        fields.push('amount = ?');
-        values.push(Number(payload.amount));
-      }
-
-      if (payload.product_id !== undefined) {
-        fields.push('product_id = ?');
-        values.push(Number(payload.product_id));
-      }
-      if (payload.user_id !== undefined) {
-        fields.push('user_id = ?');
-        values.push(Number(payload.user_id));
-      }
-      if (payload.qty !== undefined) {
-        fields.push('qty = ?');
-        values.push(Number(payload.qty));
-      }
-      if (payload.status !== undefined) {
-        fields.push('status = ?');
-        values.push(String(payload.status || '').trim());
-      }
-
-      if (fields.length === 0) return resolve({ affectedRows: 0 });
+      const { payment_method, payment_code, billing_no, invoice, shop_id, mosque_id, amount } =
+        payload;
 
       const query = `
-        UPDATE orders
-        SET ${fields.join(', ')}
-        WHERE invoice = ?;
+        UPDATE orders SET payment_method = ?, payment_code = ?, billing_no = ?, shop_id = ?, mosque_id = ?, amount = ?
+        WHERE invoice = ?
       `;
 
-      values.push(inv);
+      const params = [
+        payment_method,
+        payment_code,
+        billing_no,
+        shop_id,
+        mosque_id,
+        amount,
+        invoice,
+      ];
 
-      conn.query(query, values, (e, result) => {
+      conn.query(query, params, (e, result) => {
         if (e) reject(new Error(e));
         else resolve(result);
       });

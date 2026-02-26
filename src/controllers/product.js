@@ -35,7 +35,7 @@ module.exports = {
           stock: row.stock,
           weight: row.weight,
           created_at: row.created_at,
-          update_at: row.update_at,
+          updated_at: row.updated_at,
           store: row.shop_id
             ? {
                 id: row.shop_id,
@@ -97,7 +97,7 @@ module.exports = {
         stock: row.stock,
         weight: row.weight,
         created_at: row.created_at,
-        update_at: row.update_at,
+        updated_at: row.updated_at,
         store: row.shop_id
           ? {
               id: row.shop_id,

@@ -51,7 +51,11 @@ module.exports = {
       name: row.name,
       phone: row.phone,
       address: row.address,
+      province: row.province,
+      city: row.city,
       district: row.district,
+      subdistrict: row.subdistrict,
+      zip_code: row.zip_code,
       lat: row.lat,
       lng: row.lng,
       is_active: row.is_active,
@@ -84,7 +88,7 @@ module.exports = {
       stock: row.stock,
       weight: row.weight,
       created_at: row.created_at,
-      update_at: row.update_at,
+      updated_at: row.updated_at,
       store: row.shop_id
         ? {
             id: row.shop_id,
@@ -102,10 +106,8 @@ module.exports = {
       const n = Number(val);
       if (!Number.isFinite(n)) return null;
 
-      // Kalau 0 (atau sangat dekat 0 karena floating), anggap tidak ada jarak
       if (n <= 0.0001) return null;
 
-      // Format: 2 desimal, hilangkan trailing .00
       const s = n.toFixed(2).replace(/\.00$/, '');
 
       return `${s} km`;
@@ -114,14 +116,19 @@ module.exports = {
       id: row.id,
       name: row.name,
       description: row.description,
+      phone: row.phone,
       path: row.path,
       detail_address: row.detail_address,
+      province: row.province,
+      city: row.city,
       district: row.district,
+      subdistrict: row.subdistrict,
+      zip_code: row.zip_code,
       lat: row.lat,
       lng: row.lng,
       distance_km: formatDistanceKm(row.distance_km),
       created_at: row.created_at,
-      update_at: row.update_at,
+      updated_at: row.updated_at,
     };
   },
 
