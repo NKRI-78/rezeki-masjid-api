@@ -32,7 +32,7 @@ module.exports = {
 
   districts: (cityName) => {
     return new Promise((resolve, reject) => {
-      var query = `SELECT district_name FROM districts 
+      var query = `SELECT district_name FROM jne_destinations 
             WHERE city_name = '${cityName}'
             GROUP BY district_name`;
       conn.query(query, (e, result) => {
@@ -47,38 +47,9 @@ module.exports = {
 
   subdistricts: (districtName) => {
     return new Promise((resolve, reject) => {
-      var query = `SELECT subdistrict_name FROM subdistricts 
+      var query = `SELECT subdistrict_name, zip_code FROM jne_destinations 
             WHERE district_name = '${districtName}'
             GROUP BY subdistrict_name`;
-      conn.query(query, (e, result) => {
-        if (e) {
-          reject(new Error(e));
-        } else {
-          resolve(result);
-        }
-      });
-    });
-  },
-  postalCodes: (subDistrictName) => {
-    return new Promise((resolve, reject) => {
-      var query = `SELECT zip_code FROM jne_destinations 
-            WHERE subdistrict_name = '${subDistrictName}'
-            GROUP BY zip_code`;
-      conn.query(query, (e, result) => {
-        if (e) {
-          reject(new Error(e));
-        } else {
-          resolve(result);
-        }
-      });
-    });
-  },
-
-  postalCodesV2: (cityName, districtName) => {
-    return new Promise((resolve, reject) => {
-      var query = `SELECT zip_code, subdistrict_name FROM jne_destinations 
-            WHERE district_name = '${districtName}' AND city_name = '${cityName}'
-            GROUP BY zip_code`;
       conn.query(query, (e, result) => {
         if (e) {
           reject(new Error(e));
