@@ -5,12 +5,13 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 
 module.exports = {
-  // GET /order?page=1&limit=10&search=abc
   list: async (req, res) => {
     try {
+      const userId = req.decoded.id;
+
       const { page = 1, limit = 10, search = '', status } = req.query;
 
-      const rows = await Order.list({ page, limit, search, status });
+      const rows = await Order.list({ page, limit, search, status, user_id: userId });
 
       var items = [];
 
@@ -49,7 +50,6 @@ module.exports = {
     }
   },
 
-  // GET /order/:invoice
   detail: async (req, res) => {
     try {
       const { invoice } = req.params;
@@ -83,8 +83,6 @@ module.exports = {
     }
   },
 
-  // POST /order
-  // body: { items }
   create: async (req, res) => {
     try {
       const { items, amount } = req.body;
@@ -140,7 +138,6 @@ module.exports = {
     }
   },
 
-  // DELETE /order/:invoice
   remove: async (req, res) => {
     try {
       const { invoice } = req.params;

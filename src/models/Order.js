@@ -1,7 +1,7 @@
 const conn = require('../configs/db');
 
 module.exports = {
-  list: ({ page = 1, limit = 10, search = '', status = '' }) => {
+  list: ({ page = 1, limit = 10, search = '', status = '', user_id }) => {
     return new Promise((resolve, reject) => {
       const p = Number(page) || 1;
       const l = Number(limit) || 10;
@@ -19,8 +19,13 @@ module.exports = {
       }
 
       if (st) {
-        where.push(`o.status = ?`); // exact
+        where.push(`o.status = ?`);
         params.push(st);
+      }
+
+      if (user_id) {
+        where.push(`o.user_id = ?`);
+        params.push(user_id);
       }
 
       const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
