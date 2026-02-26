@@ -75,7 +75,7 @@ module.exports = {
   getAssignedProducts: ({ mosque_id }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT p.id, p.title, p.content, pa.is_active, p.price, p.stock
+        SELECT p.id, p.title, p.content, pa.is_active, p.price, p.stock, p.weight
         FROM products p
         INNER JOIN product_assigns pa 
         ON pa.product_id = p.id 
@@ -175,14 +175,14 @@ module.exports = {
 
   create: (payload) => {
     return new Promise((resolve, reject) => {
-      const { name, path, detail_address, lat, lng } = payload;
+      const { name, description, path, detail_address, lat, lng } = payload;
 
       const query = `
-        INSERT INTO mosques (name, path, detail_address, lat, lng, created_at, update_at)
-        VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+        INSERT INTO mosques (name, description, path, detail_address, lat, lng, created_at, update_at)
+        VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
       `;
 
-      conn.query(query, [name, path, detail_address, lat, lng], (e, result) => {
+      conn.query(query, [name, description, path, detail_address, lat, lng], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ id: result.insertId });
       });
@@ -191,12 +191,13 @@ module.exports = {
 
   update: (id, payload) => {
     return new Promise((resolve, reject) => {
-      const { name, path, detail_address, lat, lng } = payload;
+      const { name, description, path, detail_address, lat, lng } = payload;
 
       const query = `
         UPDATE mosques
         SET
           name = ?,
+          description = ?,
           path = ?,
           detail_address = ?,
           lat = ?,
@@ -205,7 +206,7 @@ module.exports = {
         WHERE id = ?
       `;
 
-      conn.query(query, [name, path, detail_address, lat, lng, id], (e, result) => {
+      conn.query(query, [name, description, path, detail_address, lat, lng, id], (e, result) => {
         if (e) reject(new Error(e));
         else resolve({ affectedRows: result.affectedRows });
       });

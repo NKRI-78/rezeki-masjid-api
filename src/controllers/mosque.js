@@ -34,7 +34,27 @@ module.exports = {
         var item = items[i];
 
         var products = await Mosque.getAssignedProducts({ mosque_id: item.id });
-        item.product_needs = products;
+
+        var dataProduct = [];
+
+        for (const z in products) {
+          var product = products[z];
+
+          var media = await Product.getMedia({ product_id: product.id });
+
+          dataProduct.push({
+            id: product.id,
+            title: product.title,
+            media: media,
+            content: product.content,
+            is_active: product.is_active,
+            price: product.price,
+            stock: product.stock,
+            weight: product.weight,
+          });
+        }
+
+        item.product_needs = dataProduct;
 
         data.push(item);
       }
@@ -62,15 +82,35 @@ module.exports = {
 
       var products = await Mosque.getAssignedProducts({ mosque_id: row.id });
 
+      var dataProduct = [];
+
+      for (const z in products) {
+        var product = products[z];
+
+        var media = await Product.getMedia({ product_id: product.id });
+
+        dataProduct.push({
+          id: product.id,
+          title: product.title,
+          media: media,
+          content: product.content,
+          is_active: product.is_active,
+          price: product.price,
+          stock: product.stock,
+          weight: product.weight,
+        });
+      }
+
       var item = {
         id: row.id,
         name: row.name,
+        description: row.description,
         path: row.path,
         detail_address: row.detail_address,
         lat: row.lat,
         lng: row.lng,
         distance_km: formatDistanceKm(row.distance_km),
-        product_needs: products,
+        product_needs: dataProduct,
         created_at: row.created_at,
         update_at: row.update_at,
       };
@@ -87,34 +127,28 @@ module.exports = {
   // POST /mosque
   create: async (req, res) => {
     try {
-      const { name, path, detail_address, lat, lng } = req.body;
+      const { name, description, path, detail_address, lat, lng } = req.body;
 
-      if (!name) return misc.response(res, 400, true, 'name is required');
+      if (!name) return misc.response(res, 400, true, 'nama wajib diisi');
 
-      if (!path) return misc.response(res, 400, true, 'path is required');
+      if (!description) return misc.response(res, 400, true, 'deskripsi wajib diisi');
 
-      if (!detail_address) return misc.response(res, 400, true, 'detail_address is required');
+      if (!path) return misc.response(res, 400, true, 'path wajib diisi');
 
-      if (!lat) return misc.response(res, 400, true, 'lat is required');
+      if (!detail_address) return misc.response(res, 400, true, 'detail alamat wajib diisi');
 
-      if (!lng) return misc.response(res, 400, true, 'lng is required');
+      if (!lat) return misc.response(res, 400, true, 'lat wajib diisi');
+
+      if (!lng) return misc.response(res, 400, true, 'lng wajib diisi');
 
       const created = await Mosque.create({
         name,
+        description,
         path,
         detail_address,
         lat,
         lng,
       });
-
-      // if (Array.isArray(product_assigns) && product_assigns.length) {
-      //   for (const i in product_assigns) {
-      //     const product = product_assigns[i];
-      //     const productId = product.product_id;
-      //     const needStuff = product.need_stuff;
-      //     await Mosque.assignProduct(created.id, productId, needStuff);
-      //   }
-      // }
 
       const row = await Mosque.detail(created.id);
 
@@ -131,13 +165,14 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, path, detail_address, lat, lng } = req.body;
+      const { name, description, path, detail_address, lat, lng } = req.body;
 
       const exists = await Mosque.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
 
       const updated = await Mosque.update(id, {
         name,
+        description,
         path,
         detail_address,
         lat,
@@ -145,19 +180,6 @@ module.exports = {
       });
 
       if (!updated?.affectedRows) return misc.response(res, 400, true, 'Failed to update');
-
-      // if (Array.isArray(product_assigns) && product_assigns.length) {
-      //   for (const product of product_assigns) {
-      //     const productId = product?.product_id;
-      //     const needStuff = product?.need_stuff;
-      //     var checkAssignProduct = await Mosque.checkAssignProduct(id, productId);
-      //     if (checkAssignProduct.length == 0) {
-      //       await Mosque.assignProduct(id, productId, needStuff);
-      //     } else {
-      //       await Mosque.updateAssignProduct(id, productId, needStuff);
-      //     }
-      //   }
-      // }
 
       const row = await Mosque.detail(id);
 

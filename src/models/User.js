@@ -3,7 +3,7 @@ const conn = require('../configs/db');
 module.exports = {
   me: (userId) => {
     return new Promise((resolve, reject) => {
-      var query = `SELECT u.id, u.email, u.role, u.phone, p.fullname, p.avatar
+      var query = `SELECT u.id, p.avatar, p.fullname, u.email, u.phone, u.role
             FROM profiles p
             INNER JOIN users u ON u.id = p.user_id
             WHERE u.id = '${userId}'`;
@@ -11,7 +11,7 @@ module.exports = {
         if (e) {
           reject(new Error(e));
         } else {
-          resolve(result);
+          resolve(result[0]);
         }
       });
     });

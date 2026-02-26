@@ -19,7 +19,7 @@ module.exports = {
           p.stock,
           p.weight,
           p.created_at,
-          p.update_at,
+          p.updated_at,
           s.id AS shop_id,
           s.name AS shop_name,
           s.is_active AS shop_active
@@ -67,7 +67,7 @@ module.exports = {
           p.stock,
           p.weight,
           p.created_at,
-          p.update_at,
+          p.updated_at,
           s.id AS shop_id,
           s.name AS shop_name,
           s.is_active AS shop_active

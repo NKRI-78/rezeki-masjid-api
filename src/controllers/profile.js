@@ -11,11 +11,9 @@ module.exports = {
     try {
       var userId = req.decoded.id;
 
-      const users = await User.me(userId);
+      const user = await User.me(userId);
 
-      if (users.length == 0) throw new Error('Pengguna tidak ditemukan');
-
-      var user = users[0];
+      if (!user) throw new Error('Pengguna tidak ditemukan');
 
       misc.response(res, 200, false, '', {
         user: {

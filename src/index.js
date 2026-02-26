@@ -6,6 +6,7 @@ const product = require('./routes/product');
 const mosque = require('./routes/mosque');
 const banner = require('./routes/banner');
 const shop = require('./routes/shop');
+const order = require('./routes/order');
 
 const Route = express.Router();
 
@@ -15,5 +16,6 @@ Route.use('/api/v1/product', product);
 Route.use('/api/v1/mosque', mosque);
 Route.use('/api/v1/banner', banner);
 Route.use('/api/v1/shop', shop);
+Route.use('/api/v1/order', order);
 
 module.exports = Route;

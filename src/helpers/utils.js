@@ -62,6 +62,10 @@ module.exports = {
     };
   },
 
+  pad(width, string, padding) {
+    return width <= string.length ? string : pad(width, padding + string, padding);
+  },
+
   toProductResponse(row) {
     return {
       id: row.id,
@@ -100,6 +104,7 @@ module.exports = {
     return {
       id: row.id,
       name: row.name,
+      description: row.description,
       path: row.path,
       detail_address: row.detail_address,
       lat: row.lat,
