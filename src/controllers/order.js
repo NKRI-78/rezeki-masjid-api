@@ -1,4 +1,4 @@
-const moment = require('moment');
+const moment = require('moment-timezone');
 const misc = require('../helpers/response');
 const Order = require('../models/Order');
 const User = require('../models/User');
