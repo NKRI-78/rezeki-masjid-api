@@ -76,14 +76,14 @@ module.exports = {
   },
 
   // CREATE
-  insert: ({ path }) => {
+  insert: ({ link, path }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO banners (path, created_at, updated_at)
-        VALUES (?, NOW(), NOW());
+        INSERT INTO banners (link, path, created_at, updated_at)
+        VALUES (?, ?, NOW(), NOW());
       `;
 
-      conn.query(query, [path], (e, result) => {
+      conn.query(query, [link, path], (e, result) => {
         if (e) return reject(new Error(e));
         resolve({
           insertId: result.insertId,
@@ -94,15 +94,15 @@ module.exports = {
   },
 
   // UPDATE
-  update: (id, { path }) => {
+  update: (id, { link, path }) => {
     return new Promise((resolve, reject) => {
       const query = `
         UPDATE banners
-        SET path = ?, updated_at = NOW()
+        SET link = ?, path = ?, updated_at = NOW()
         WHERE id = ?;
       `;
 
-      conn.query(query, [path, id], (e, result) => {
+      conn.query(query, [link, path, id], (e, result) => {
         if (e) return reject(new Error(e));
         resolve({
           affectedRows: result.affectedRows,
