@@ -247,7 +247,7 @@ module.exports = {
 
       if (!Array.isArray(items) || items.length === 0) throw new Error('items tidak boleh kosong');
 
-      let weight = 0; // total gram
+      let weight = 0;
 
       for (const i in items) {
         const item = items[i];
@@ -358,6 +358,8 @@ module.exports = {
 
       if (typeof invoice == 'undefined' || invoice == '') throw new Error('invoice wajib diisi');
 
+      const order = await Order.detail(invoice);
+
       var waybill;
       var receipt;
 
@@ -365,7 +367,7 @@ module.exports = {
         case 'WAYBILL':
           const url = process.env.WAYBILL_JNE;
 
-          const order = await Order.detail(invoice);
+          if (order.paid_at == null) throw new Error('Order belum dibayar');
 
           const shop = await Shop.detail(order.shop_id);
           const mosque = await Mosque.detail(order.mosque_id);
@@ -464,11 +466,8 @@ module.exports = {
         return res.status(404).json({ error: true, message: 'Order tidak ditemukan' });
       }
 
-      // pastikan waybill sudah ada
       if (!order.waybill) {
-        return res
-          .status(400)
-          .json({ error: true, message: 'waybill belum ada, generate WAYBILL dulu' });
+        return res.status(400).json({ error: true, message: 'Waybill belum ada' });
       }
 
       const shop = await Shop.detail(order.shop_id);
@@ -554,7 +553,7 @@ module.exports = {
           var productId = item.id;
 
           if (parseInt(item.stock) < parseInt(item.qty)) {
-            throw new Error(`Stock tidak cukup untuk produk ${productId}. Sisa: ${item.stock}`);
+            throw new Error(`Stok tidak cukup untuk produk ${productId}. Sisa: ${item.stock}`);
           }
 
           var currStock = parseInt(item.stock) - parseInt(item.qty);
