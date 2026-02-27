@@ -14,34 +14,34 @@ module.exports = {
       const params = [];
 
       if (s) {
-        where.push(`o.invoice LIKE ?`);
+        where.push(`invoice LIKE ?`);
         params.push(`%${s}%`);
       }
 
       if (st) {
-        where.push(`o.status = ?`);
+        where.push(`status = ?`);
         params.push(st);
       }
 
       if (user_id) {
-        where.push(`o.user_id = ?`);
+        where.push(`user_id = ?`);
         params.push(user_id);
       }
 
       const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
       const queryItems = `
-      SELECT o.*
-      FROM orders o
+      SELECT *
+      FROM orders
       ${whereClause}
-      ORDER BY o.id DESC
+      ORDER BY id DESC
       LIMIT ?
       OFFSET ?;
     `;
 
       const queryCount = `
       SELECT COUNT(*) AS total
-      FROM orders o
+      FROM orders
       ${whereClause};
     `;
 
