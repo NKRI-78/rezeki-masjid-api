@@ -23,10 +23,29 @@ module.exports = {
       for (const i in rows.items) {
         const row = rows.items[i];
 
-        const product = await Order.orderItem(row.id);
+        const products = await Order.orderItem(row.id);
         const shop = await Shop.detail(row.shop_id);
         const mosque = await Mosque.detail(row.mosque_id);
         const user = await User.me(row.user_id);
+
+        var dataProduct = [];
+
+        for (const z in products) {
+          var product = products[z];
+
+          var media = await Product.getMedia({ product_id: product.id });
+
+          dataProduct.push({
+            id: product.id,
+            title: product.title,
+            media: media,
+            content: product.content,
+            is_active: product.is_active,
+            price: product.price,
+            stock: product.stock,
+            weight: product.weight,
+          });
+        }
 
         items.push({
           invoice: row.invoice,
@@ -43,7 +62,7 @@ module.exports = {
           waybill: row.waybill,
           shop: shop,
           mosque: mosque,
-          products: product,
+          products: dataProduct,
           user: {
             id: user.id,
             avatar: user.avatar,
@@ -76,12 +95,31 @@ module.exports = {
       if (!invoice) return misc.response(res, 400, true, 'invoice is required');
 
       const row = await Order.detail(invoice);
-      if (!row) return misc.response(res, 404, true, 'order not found');
+      if (!row) return misc.response(res, 404, true, 'Order tidak ditemukan');
 
-      const product = await Order.orderItem(row.id);
+      const products = await Order.orderItem(row.id);
       const shop = await Shop.detail(row.shop_id);
       const mosque = await Mosque.detail(row.mosque_id);
       const user = await User.me(row.user_id);
+
+      var dataProduct = [];
+
+      for (const z in products) {
+        var product = products[z];
+
+        var media = await Product.getMedia({ product_id: product.id });
+
+        dataProduct.push({
+          id: product.id,
+          title: product.title,
+          media: media,
+          content: product.content,
+          is_active: product.is_active,
+          price: product.price,
+          stock: product.stock,
+          weight: product.weight,
+        });
+      }
 
       misc.response(res, 200, false, 'OK', {
         invoice: row.invoice,
@@ -99,7 +137,7 @@ module.exports = {
         waybill: row.waybill,
         shop: shop,
         mosque: mosque,
-        products: product,
+        products: dataProduct,
         user: {
           id: user.id,
           avatar: user.avatar,
