@@ -238,12 +238,33 @@ module.exports = {
 
   // POST /mosque/assign-product
   assignProduct: async (req, res) => {
-    const { product_id, mosque_id } = req.body;
-    try {
-      const exists = await Mosque.detail(mosque_id);
-      if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
+    const { items } = req.body;
 
-      await Mosque.assignProduct(mosque_id, product_id);
+    try {
+      if (typeof items == 'undefined' || items.length == 0)
+        throw new Error('items tidak boleh kosong');
+
+      for (const i in items) {
+        var item = items[i];
+
+        if (typeof item.product_id == 'undefined' || item.product_id == '')
+          throw new Error('product_id wajib diisi');
+
+        if (typeof item.mosque_id == 'undefined' || item.mosque_id == '')
+          throw new Error('mosque_id wajib diisi');
+
+        if (typeof item.stock == 'undefined' || item.stock == '')
+          throw new Error('stock wajib diisi');
+
+        var productId = item.product_id;
+        var mosqueId = item.mosque_id;
+        var stock = item.stock;
+
+        const exists = await Mosque.detail(mosqueId);
+        if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
+
+        await Mosque.assignProduct({ mosqueId, productId, stock });
+      }
 
       return misc.response(res, 201, false, 'Assigned', {});
     } catch (e) {

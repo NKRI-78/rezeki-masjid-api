@@ -135,6 +135,25 @@ module.exports = {
         jne_service_code,
       } = req.body;
 
+      if (items.length == 0) throw new Error('items tidak boleh kosong');
+
+      if (typeof amount == 'undefined' || amount == '') throw new Error('amount wajib diisi');
+
+      if (typeof payment_code == 'undefined' || payment_code == '')
+        throw new Error('payment_code wajib diisi');
+
+      if (typeof payment_channel_id == 'undefined' || payment_channel_id == '')
+        throw new Error('payment_channel_id wajib diisi');
+
+      if (typeof mosque_id == 'undefined' || mosque_id == '')
+        throw new Error('mosque_id wajib diisi');
+
+      if (typeof jne_price == 'undefined' || jne_price == '')
+        throw new Error('jne_price wajib diisi');
+
+      if (typeof jne_service_code == 'undefined' || jne_service_code == '')
+        throw new Error('jne_service_code wajib diisi');
+
       const invoiceDate = moment().format('YYYYMMDD');
 
       const invoiceData = await Order.invoice(invoiceDate);
@@ -234,6 +253,11 @@ module.exports = {
     try {
       const { mosque_id, items } = req.body;
 
+      if (typeof mosque_id == 'undefined' || mosque_id == '')
+        throw new Error('mosque_id wajib diisi');
+
+      if (items.length == 0) throw new Error('items tidak boleh kosong');
+
       var weight = 0;
 
       for (const i in items) {
@@ -283,9 +307,9 @@ module.exports = {
       const { type } = req.params;
       const { invoice } = req.body;
 
+      var waybill;
+
       switch (type) {
-        case 'PROCESS':
-          break;
         case 'WAYBILL':
           const url = process.env.WAYBILL_JNE;
 
@@ -303,11 +327,11 @@ module.exports = {
 
             OLSHOP_BRANCH: 'CGK000', // JAKARTA
             OLSHOP_CUST: '80580700',
-            OLSHOP_ORDERID: 'test', // ini nya yang bener
+            OLSHOP_ORDERID: order.id,
 
             OLSHOP_SHIPPER_NAME: shop.name,
-            OLSHOP_SHIPPER_ADDR1: 'jl', // shop.address
-            OLSHOP_SHIPPER_ADDR2: 'jl', //shop.address
+            OLSHOP_SHIPPER_ADDR1: shop.address, // shop.address
+            OLSHOP_SHIPPER_ADDR2: shop.address, //shop.address
             OLSHOP_SHIPPER_ADDR3: '', // optional
             OLSHOP_SHIPPER_CITY: shop.city,
             OLSHOP_SHIPPER_REGION: '', // optional
@@ -315,8 +339,8 @@ module.exports = {
             OLSHOP_SHIPPER_PHONE: parseInt(shop.phone),
 
             OLSHOP_RECEIVER_NAME: mosque.name,
-            OLSHOP_RECEIVER_ADDR1: 'jl', // mosque.detail_address
-            OLSHOP_RECEIVER_ADDR2: 'jl', // mosque.detail_address
+            OLSHOP_RECEIVER_ADDR1: mosque.detail_address, // mosque.detail_address
+            OLSHOP_RECEIVER_ADDR2: mosque.detail_address, // mosque.detail_address
             OLSHOP_RECEIVER_ADDR3: '', // optional
             OLSHOP_RECEIVER_CITY: mosque.city,
             OLSHOP_RECEIVER_REGION: '', // optional
@@ -324,7 +348,7 @@ module.exports = {
             OLSHOP_RECEIVER_PHONE: parseInt(mosque.phone),
 
             OLSHOP_QTY: order.product_qty,
-            OLSHOP_WEIGHT: 1,
+            OLSHOP_WEIGHT: order.product_weight,
             OLSHOP_GOODSDESC: '-',
             OLSHOP_GOODSVALUE: 10000,
             OLSHOP_GOODSTYPE: 1,
@@ -348,17 +372,17 @@ module.exports = {
             data: data,
           };
 
-          console.log(config);
-
           const result = await axios(config);
 
-          console.log(result.data);
+          waybill = result.data.detail.cnote_no;
 
         default:
           break;
       }
 
-      misc.response(res, 200, false, 'OK');
+      misc.response(res, 200, false, 'OK', {
+        data: waybill,
+      });
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);

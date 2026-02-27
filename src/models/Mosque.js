@@ -122,12 +122,12 @@ module.exports = {
     });
   },
 
-  assignProduct: (mosqueId, productId, needStuff) => {
+  assignProduct: ({ mosqueId, productId, stock }) => {
     return new Promise((resolve, reject) => {
       conn.query(
-        `INSERT INTO product_assigns (mosque_id, product_id) 
-        VALUES (?, ?)`,
-        [mosqueId, productId, needStuff],
+        `INSERT INTO product_assigns (mosque_id, product_id, stock) 
+        VALUES (?, ?, ?)`,
+        [mosqueId, productId, stock],
         (e, result) => {
           if (e) reject(new Error(e));
           else resolve(result?.[0] || null);
