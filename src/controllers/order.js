@@ -294,6 +294,8 @@ module.exports = {
       const { type } = req.params;
       const { invoice } = req.body;
 
+      if (typeof invoice == 'undefined' || invoice == '') throw new Error('invoice wajib diisi');
+
       var waybill;
       var receipt;
 
@@ -318,8 +320,8 @@ module.exports = {
             OLSHOP_ORDERID: order.id,
 
             OLSHOP_SHIPPER_NAME: shop.name,
-            OLSHOP_SHIPPER_ADDR1: shop.address, // shop.address
-            OLSHOP_SHIPPER_ADDR2: shop.address, //shop.address
+            OLSHOP_SHIPPER_ADDR1: shop.address,
+            OLSHOP_SHIPPER_ADDR2: shop.address,
             OLSHOP_SHIPPER_ADDR3: '', // optional
             OLSHOP_SHIPPER_CITY: shop.city,
             OLSHOP_SHIPPER_REGION: '', // optional
@@ -327,8 +329,8 @@ module.exports = {
             OLSHOP_SHIPPER_PHONE: parseInt(shop.phone),
 
             OLSHOP_RECEIVER_NAME: mosque.name,
-            OLSHOP_RECEIVER_ADDR1: mosque.detail_address, // mosque.detail_address
-            OLSHOP_RECEIVER_ADDR2: mosque.detail_address, // mosque.detail_address
+            OLSHOP_RECEIVER_ADDR1: mosque.detail_address,
+            OLSHOP_RECEIVER_ADDR2: mosque.detail_address,
             OLSHOP_RECEIVER_ADDR3: '', // optional
             OLSHOP_RECEIVER_CITY: mosque.city,
             OLSHOP_RECEIVER_REGION: '', // optional
@@ -397,7 +399,7 @@ module.exports = {
 
       const order = await Order.detail(invoice);
       if (!order) {
-        return res.status(404).json({ error: true, message: 'order not found' });
+        return res.status(404).json({ error: true, message: 'Order tidak ditemukan' });
       }
 
       // pastikan waybill sudah ada
@@ -475,7 +477,8 @@ module.exports = {
       if (status == 'PAID') {
         await Order.updatePayment(order_id, status);
 
-        var order = await Order.detail(order_id);
+        // var order = await Order.detail(order_id);
+        // var mosqueId = order.mosque_id;
       }
 
       misc.response(res, 200, false, 'Callback called');

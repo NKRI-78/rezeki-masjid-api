@@ -75,7 +75,7 @@ module.exports = {
   getAssignedProducts: ({ mosque_id }) => {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT p.id, p.title, p.content, pa.is_active, p.price, p.stock, p.weight
+        SELECT p.id, p.title, p.content, pa.is_active, p.price, pa.stock, p.weight
         FROM products p
         INNER JOIN product_assigns pa 
         ON pa.product_id = p.id 
