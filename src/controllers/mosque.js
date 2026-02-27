@@ -105,6 +105,7 @@ module.exports = {
         id: row.id,
         name: row.name,
         description: row.description,
+        phone: row.phone,
         path: row.path,
         detail_address: row.detail_address,
         province: row.province,
