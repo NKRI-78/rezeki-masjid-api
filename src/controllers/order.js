@@ -390,6 +390,8 @@ module.exports = {
 
       const order = await Order.detail(invoice);
 
+      if (!order) throw new Error('Order tidak ditemukan');
+
       let waybill;
       let receipt;
 
