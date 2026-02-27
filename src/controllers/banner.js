@@ -41,13 +41,13 @@ module.exports = {
   // POST /banners  { "path": "..." }
   create: async (req, res) => {
     try {
-      const { path } = req.body;
+      const { path, link } = req.body;
 
       if (!path || String(path).trim() === '') {
         return misc.response(res, 400, true, 'path is required');
       }
 
-      const result = await Banner.insert({ path: String(path).trim() });
+      const result = await Banner.insert({ path: String(path).trim(), link: link });
       const banner = await Banner.detail(result.insertId);
 
       misc.response(res, 201, false, 'Created', {
@@ -63,7 +63,7 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { path } = req.body;
+      const { path, link } = req.body;
 
       if (!path || String(path).trim() === '') {
         return misc.response(res, 400, true, 'path is required');
@@ -75,7 +75,7 @@ module.exports = {
         return misc.response(res, 404, true, 'Banner not found');
       }
 
-      const result = await Banner.update(id, { path: String(path).trim() });
+      const result = await Banner.update(id, { path: String(path).trim(), link: link });
       if (!result.affectedRows) {
         return misc.response(res, 400, true, 'Failed to update banner');
       }
