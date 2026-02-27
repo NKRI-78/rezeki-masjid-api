@@ -266,7 +266,7 @@ module.exports = {
         await Mosque.assignProduct({ mosqueId, productId, stock });
       }
 
-      return misc.response(res, 201, false, 'Assigned', {});
+      return misc.response(res, 201, false, 'Assigned Product', {});
     } catch (e) {
       console.log(e);
       return misc.response(res, 400, true, e.message);

@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const { default: axios } = require('axios');
 const { gramsToKg } = require('../helpers/utils');
+const { generateReceiptPng } = require('../helpers/receipt_image');
 const Product = require('../models/Product');
 const Shop = require('../models/Shop');
 const Mosque = require('../models/Mosque');
@@ -58,20 +59,6 @@ module.exports = {
         total: rows.total,
         total_pages: rows.total_pages,
       });
-    } catch (e) {
-      console.log(e);
-      misc.response(res, 400, true, e.message);
-    }
-  },
-
-  callback: async (req, res) => {
-    try {
-      const { order_id, status } = req.body;
-      if (status == 'PAID') {
-        await Order.updatePayment(order_id, status);
-      }
-
-      misc.response(res, 200, false, 'Callback called');
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);
@@ -308,6 +295,7 @@ module.exports = {
       const { invoice } = req.body;
 
       var waybill;
+      var receipt;
 
       switch (type) {
         case 'WAYBILL':
@@ -350,7 +338,7 @@ module.exports = {
             OLSHOP_QTY: order.product_qty,
             OLSHOP_WEIGHT: order.product_weight,
             OLSHOP_GOODSDESC: '-',
-            OLSHOP_GOODSVALUE: 10000,
+            OLSHOP_GOODSVALUE: parseInt(order.amount),
             OLSHOP_GOODSTYPE: 1,
             OLSHOP_INST: '-',
             OLSHOP_INS_FLAG: 'N',
@@ -374,18 +362,92 @@ module.exports = {
 
           const result = await axios(config);
 
-          waybill = result.data.detail.cnote_no;
+          if (result.data.detail.length != 0) {
+            if (result.data.detail[0].status.toLowerCase() == 'error') {
+              if (result.data.detail[0].cnote_no == null) {
+                throw new Error(
+                  `${result.data.detail[0].reason} - ${result.data.detail[0].cnote_no}`,
+                );
+              }
+            }
+          }
+
+          waybill = result.data.detail[0].cnote_no;
+          receipt = `${process.env.BASE_URL}/api/v1/order/${invoice}/receipt.png`;
+
+          await Order.orderUpdateWaybill(waybill, receipt, invoice);
 
         default:
           break;
       }
 
       misc.response(res, 200, false, 'OK', {
-        data: waybill,
+        waybill: waybill,
+        receipt: receipt,
       });
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);
+    }
+  },
+
+  receiptPng: async (req, res) => {
+    try {
+      const { invoice } = req.params;
+
+      const order = await Order.detail(invoice);
+      if (!order) {
+        return res.status(404).json({ error: true, message: 'order not found' });
+      }
+
+      // pastikan waybill sudah ada
+      if (!order.waybill) {
+        return res
+          .status(400)
+          .json({ error: true, message: 'waybill belum ada, generate WAYBILL dulu' });
+      }
+
+      const shop = await Shop.detail(order.shop_id);
+      const mosque = await Mosque.detail(order.mosque_id);
+
+      const dateText = moment().format('YYYY-MM-DD');
+
+      // opsional: kalau kamu punya tracking url internal
+      // const qrText = `https://domain-kamu.com/track/${order.waybill}`;
+      const qrText = order.waybill;
+
+      const png = await generateReceiptPng({
+        dateText,
+        invoice: order.invoice || invoice,
+        waybill: order.waybill,
+        qrText,
+
+        senderName: shop?.name,
+        senderPhone: shop?.phone,
+        senderAddress: shop?.address,
+        senderCity: shop?.city,
+        senderZip: shop?.zip_code,
+
+        receiverName: mosque?.name,
+        receiverPhone: mosque?.phone,
+        receiverAddress: mosque?.detail_address,
+        receiverCity: mosque?.city,
+        receiverZip: mosque?.zip_code,
+
+        courier: 'JNE',
+        serviceCode: order.jne_service_code,
+        qty: order.product_qty,
+        weight: order.product_weight,
+        goodsValue: order.amount,
+      });
+
+      res.setHeader('Content-Type', 'image/png');
+      // inline = tampil di browser; attachment = auto download
+      res.setHeader('Content-Disposition', `inline; filename="resi-${invoice}.png"`);
+      return res.status(200).send(png);
+    } catch (e) {
+      console.log(e);
+      return res.status(500).json({ error: true, message: e.message });
     }
   },
 
@@ -401,6 +463,22 @@ module.exports = {
       await Order.remove(invoice);
 
       misc.response(res, 200, false, 'deleted', { invoice });
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
+
+  callback: async (req, res) => {
+    try {
+      const { order_id, status } = req.body;
+      if (status == 'PAID') {
+        await Order.updatePayment(order_id, status);
+
+        var order = await Order.detail(order_id);
+      }
+
+      misc.response(res, 200, false, 'Callback called');
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);

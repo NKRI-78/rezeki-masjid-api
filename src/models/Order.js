@@ -69,9 +69,9 @@ module.exports = {
   detail: (invoice) => {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT o.*
-        FROM orders o
-        WHERE o.invoice = ?
+        SELECT *
+        FROM orders
+        WHERE invoice = ?
         LIMIT 1;
       `;
 
@@ -166,6 +166,19 @@ module.exports = {
       `;
 
       conn.query(query, [inv], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result?.[0] || null);
+      });
+    });
+  },
+
+  orderUpdateWaybill: (waybill, receipt, invoice) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE orders SET waybill = ?, receipt = ? WHERE invoice = ?
+      `;
+
+      conn.query(query, [waybill, receipt, invoice], (e, result) => {
         if (e) reject(new Error(e));
         else resolve(result?.[0] || null);
       });
