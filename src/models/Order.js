@@ -221,11 +221,20 @@ module.exports = {
 
   update: (payload) => {
     return new Promise((resolve, reject) => {
-      const { payment_method, payment_code, billing_no, invoice, shop_id, mosque_id, amount } =
-        payload;
+      const {
+        payment_method,
+        payment_code,
+        billing_no,
+        invoice,
+        product_qty,
+        product_weight,
+        shop_id,
+        mosque_id,
+        amount,
+      } = payload;
 
       const query = `
-        UPDATE orders SET payment_method = ?, payment_code = ?, billing_no = ?, shop_id = ?, mosque_id = ?, amount = ?
+        UPDATE orders SET payment_method = ?, payment_code = ?, billing_no = ?, product_qty = ?, product_weight = ?, shop_id = ?, mosque_id = ?, amount = ?
         WHERE invoice = ?
       `;
 
@@ -233,6 +242,8 @@ module.exports = {
         payment_method,
         payment_code,
         billing_no,
+        product_qty,
+        product_weight,
         shop_id,
         mosque_id,
         amount,

@@ -125,8 +125,15 @@ module.exports = {
     const userId = req.decoded.id;
 
     try {
-      const { items, payment_code, payment_channel_id, mosque_id, jne_price, jne_service_code } =
-        req.body;
+      const {
+        items,
+        amount,
+        payment_code,
+        payment_channel_id,
+        mosque_id,
+        jne_price,
+        jne_service_code,
+      } = req.body;
 
       const invoiceDate = moment().format('YYYYMMDD');
 
@@ -148,7 +155,8 @@ module.exports = {
         user_id: userId,
       });
 
-      var amount = 0;
+      var qty = 0;
+      var weight = 0;
       var shopId;
 
       for (const i in items) {
@@ -156,7 +164,9 @@ module.exports = {
 
         var product = await Product.detail(item.product_id);
 
-        amount += product.price * item.qty;
+        qty += parseInt(item.qty);
+        weight += parseInt(product.weight);
+
         shopId = product.shop_id;
 
         await Order.createOrderItem({ invoice: order, product_id: item.product_id, qty: item.qty });
@@ -165,7 +175,7 @@ module.exports = {
       const payload = {
         channel_id: payment_channel_id,
         orderId: invoiceValue,
-        amount: amount,
+        amount: parseInt(amount),
         app: 'REZEKIMASJID',
         callbackUrl: process.env.CALLBACK,
       };
@@ -200,6 +210,8 @@ module.exports = {
         payment_code: payment_code,
         billing_no: paymentAccess,
         invoice: invoiceValue,
+        product_qty: qty,
+        product_weight: gramsToKg(weight),
         shop_id: shopId,
         mosque_id: mosque_id,
         amount: amount,
@@ -285,52 +297,63 @@ module.exports = {
           const orig = await Order.getTariffCode(shop.district);
           const dest = await Order.getTariffCode(mosque.district);
 
-          console.log(shop);
-
-          const body = {
+          const data = {
             username: process.env.USERNAME_JNE,
             api_key: process.env.KEY_API_JNE,
 
             OLSHOP_BRANCH: 'CGK000', // JAKARTA
-            OLSHOP_CUST: 'RZKMSJD',
-            OLSHOP_ORDERID: order.invoice,
+            OLSHOP_CUST: '80580700',
+            OLSHOP_ORDERID: 'test', // ini nya yang bener
 
             OLSHOP_SHIPPER_NAME: shop.name,
-            OLSHOP_SHIPPER_ADDR1: shop.address,
-            OLSHOP_SHIPPER_ADDR2: shop.address,
+            OLSHOP_SHIPPER_ADDR1: 'jl', // shop.address
+            OLSHOP_SHIPPER_ADDR2: 'jl', //shop.address
             OLSHOP_SHIPPER_ADDR3: '', // optional
             OLSHOP_SHIPPER_CITY: shop.city,
             OLSHOP_SHIPPER_REGION: '', // optional
             OLSHOP_SHIPPER_ZIP: shop.zip_code,
-            OLSHOP_SHIPPER_PHONE: shop.phone,
+            OLSHOP_SHIPPER_PHONE: parseInt(shop.phone),
 
             OLSHOP_RECEIVER_NAME: mosque.name,
-            OLSHOP_RECEIVER_ADDR1: mosque.detail_address,
-            OLSHOP_RECEIVER_ADDR2: mosque.detail_address,
+            OLSHOP_RECEIVER_ADDR1: 'jl', // mosque.detail_address
+            OLSHOP_RECEIVER_ADDR2: 'jl', // mosque.detail_address
             OLSHOP_RECEIVER_ADDR3: '', // optional
             OLSHOP_RECEIVER_CITY: mosque.city,
             OLSHOP_RECEIVER_REGION: '', // optional
             OLSHOP_RECEIVER_ZIP: mosque.zip_code,
-            OLSHOP_RECEIVER_PHONE: mosque.phone,
+            OLSHOP_RECEIVER_PHONE: parseInt(mosque.phone),
 
-            OLSHOP_QTY: '1',
-            OLSHOP_WEIGHT: '1',
+            OLSHOP_QTY: order.product_qty,
+            OLSHOP_WEIGHT: 1,
             OLSHOP_GOODSDESC: '-',
-            OLSHOP_GOODSVALUE: '150000',
-            OLSHOP_GOODSTYPE: '2',
-            OLSHOP_INST: 'Jangan dibanting',
-            OLSHOP_INS_FLAG: 'N', // Y / N
+            OLSHOP_GOODSVALUE: 10000,
+            OLSHOP_GOODSTYPE: 1,
+            OLSHOP_INST: '-',
+            OLSHOP_INS_FLAG: 'N',
 
             OLSHOP_ORIG: orig,
             OLSHOP_DEST: dest,
             OLSHOP_SERVICE: order.jne_service_code,
 
-            OLSHOP_COD_FLAG: 'N', // YES / N
+            OLSHOP_COD_FLAG: 'N',
             OLSHOP_COD_AMOUNT: '0',
           };
 
-          console.log(body);
-          break;
+          const config = {
+            method: 'POST',
+            url: url,
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            data: data,
+          };
+
+          console.log(config);
+
+          const result = await axios(config);
+
+          console.log(result.data);
+
         default:
           break;
       }
