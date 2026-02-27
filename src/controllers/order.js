@@ -31,12 +31,14 @@ module.exports = {
         items.push({
           invoice: row.invoice,
           amount: row.amount,
+          fee: row.fee,
           status: row.status,
           billing_no: row.billing_no,
           payment_method: row.payment_method,
           payment_code: row.payment_code,
           jne_service_code: row.jne_service_code,
           jne_price: row.jne_price,
+          how_to_use: row.how_to_use,
           receipt: row.receipt,
           waybill: row.waybill,
           shop: shop,
@@ -50,6 +52,7 @@ module.exports = {
             phone: user.phone,
             role: user.role == 1 ? 'admin' : 'user',
           },
+          expire_at: row.expire_at,
         });
       }
 
@@ -83,6 +86,7 @@ module.exports = {
       misc.response(res, 200, false, 'OK', {
         invoice: row.invoice,
         amount: row.amount,
+        fee: row.fee,
         qty: row.qty,
         status: row.status,
         billing_no: row.billing_no,
@@ -90,6 +94,7 @@ module.exports = {
         payment_code: row.payment_code,
         jne_service_code: row.jne_service_code,
         jne_price: row.jne_price,
+        how_to_use: row.how_to_use,
         receipt: row.receipt,
         waybill: row.waybill,
         shop: shop,
@@ -103,6 +108,7 @@ module.exports = {
           phone: user.phone,
           role: user.role == 1 ? 'admin' : 'user',
         },
+        expire_at: row.expire_at,
       });
     } catch (e) {
       console.log(e);
@@ -163,6 +169,7 @@ module.exports = {
         user_id: userId,
       });
 
+      var fee = 0;
       var qty = 0;
       var weight = 0;
       var shopId;
@@ -196,7 +203,7 @@ module.exports = {
 
       const result = await axios(config);
 
-      var paymentAccess, paymentType, paymentExpire;
+      var howToUse, paymentAccess, paymentType, paymentExpire;
 
       if (['gopay'].includes(payment_code)) {
         paymentAccess = result.data.data.data.actions[0].url;
@@ -205,10 +212,28 @@ module.exports = {
           .tz('Asia/Jakarta')
           .add(30, 'minutes')
           .format('YYYY-MM-DD HH:mm:ss');
+        fee = 1500;
       } else {
+        switch (payment_code) {
+          case 'mandiri':
+            howToUse = process.env.HOW_TO_USE_MANDIRI;
+            break;
+          case 'bri':
+            howToUse = process.env.HOW_TO_USE_BRI;
+            break;
+          case 'bni':
+            howToUse = process.env.HOW_TO_USE_BNI;
+            break;
+          case 'cimb':
+            howToUse = process.env.HOW_TO_USE_CIMB;
+            break;
+          default:
+            break;
+        }
         paymentAccess = result.data.data.data.vaNumber;
         paymentType = 'va';
         paymentExpire = result.data.data.expire;
+        fee = 6500;
       }
 
       const created = await Order.detail(invoiceValue);
@@ -223,6 +248,9 @@ module.exports = {
         shop_id: shopId,
         mosque_id: mosque_id,
         amount: amount,
+        fee: fee,
+        how_to_use: howToUse,
+        expire_at: paymentExpire,
       });
 
       misc.response(res, 201, false, 'created', {

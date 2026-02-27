@@ -232,10 +232,14 @@ module.exports = {
         shop_id,
         mosque_id,
         amount,
+        fee,
+        how_to_use,
+        expire_at,
       } = payload;
 
       const query = `
-        UPDATE orders SET payment_method = ?, payment_code = ?, billing_no = ?, product_qty = ?, product_weight = ?, shop_id = ?, mosque_id = ?, amount = ?
+        UPDATE orders SET payment_method = ?, payment_code = ?, billing_no = ?, product_qty = ?, product_weight = ?, shop_id = ?, mosque_id = ?, 
+        amount = ?, fee = ?, how_to_use = ?, expire_at = ?
         WHERE invoice = ?
       `;
 
@@ -248,6 +252,9 @@ module.exports = {
         shop_id,
         mosque_id,
         amount,
+        fee,
+        how_to_use,
+        expire_at,
         invoice,
       ];
 
