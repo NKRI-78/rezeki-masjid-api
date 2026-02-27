@@ -251,8 +251,8 @@ module.exports = {
 
       for (const i in items) {
         const item = items[i];
-
         const product = await Product.detail(item.product_id);
+
         weight += Number(product.weight) * Number(item.qty);
       }
 
@@ -285,28 +285,36 @@ module.exports = {
       const result = await axios(config);
 
       // ---------------------------
-      // HELPERS: SERVICE NAME MAP
+      // LABEL USER FRIENDLY
       // ---------------------------
-      const getServiceFullName = (serviceDisplay) => {
-        const code = String(serviceDisplay || '').toUpperCase();
+      const SERVICE_LABEL_MAP = {
+        CTC: 'Reguler (Dalam Kota)',
+        CTCYES: 'Express Besok Sampai',
+        CTCSPS: 'Same Day',
+        JTR: 'Kargo Hemat',
+        'JTR<130': 'Kargo <130kg',
+        'JTR>130': 'Kargo >130kg',
+        'JTR>200': 'Kargo >200kg',
+      };
 
-        // CTC variants
-        if (code.startsWith('CTCYES')) {
-          return 'City Transshipment Center - Yakin Esok Sampai (Next Day)';
-        }
-        if (code.startsWith('CTCSPS')) {
-          return 'City Transshipment Center - Super Speed';
-        }
-        if (code.startsWith('CTC')) {
-          return 'City Transshipment Center';
-        }
+      const getServiceLabel = (serviceDisplay, serviceCode) => {
+        // beberapa response JNE kadang aneh, jadi cek display & code
+        const d = String(serviceDisplay || '')
+          .trim()
+          .toUpperCase();
+        const c = String(serviceCode || '')
+          .trim()
+          .toUpperCase();
 
-        // JTR variants (JTR, JTR<130, JTR>130, dst)
-        if (code.includes('JTR')) {
-          return 'JTR (JNE Trucking - Minimum 10 Kg)';
-        }
+        // prioritas exact match
+        if (SERVICE_LABEL_MAP[d]) return SERVICE_LABEL_MAP[d];
+        if (SERVICE_LABEL_MAP[c]) return SERVICE_LABEL_MAP[c];
 
-        return serviceDisplay; // fallback
+        // fallback: kalau mengandung JTR tapi tidak exact (misal variasi)
+        if (d.includes('JTR') || c.includes('JTR')) return 'Kargo Hemat';
+
+        // fallback terakhir
+        return serviceDisplay;
       };
 
       // ---------------------------
@@ -323,16 +331,15 @@ module.exports = {
         });
       }
 
-      // sort termurah di atas
+      // sort termurah di atas (price string)
       prices.sort((a, b) => Number(a.price) - Number(b.price));
 
-      // tambahkan nama panjang
+      // tambahkan label user friendly
       prices = prices.map((r) => ({
-        service_name: getServiceFullName(r.service_display),
+        service_label: getServiceLabel(r.service_display, r.service_code),
         ...r,
       }));
 
-      // response
       misc.response(res, 200, false, 'OK', {
         weight_gram: weight,
         weight_kg: Number(weightKg),
