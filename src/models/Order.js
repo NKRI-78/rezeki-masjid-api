@@ -176,7 +176,7 @@ module.exports = {
   orderUpdateWaybill: (waybill, receipt, invoice) => {
     return new Promise((resolve, reject) => {
       const query = `
-        UPDATE orders SET waybill = ?, receipt = ? WHERE invoice = ?
+        UPDATE orders SET waybill = ?, receipt = ?, waybill_created_at = NOW() WHERE invoice = ?
       `;
 
       conn.query(query, [waybill, receipt, invoice], (e, result) => {
