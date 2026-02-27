@@ -152,27 +152,6 @@ module.exports = {
     });
   },
 
-  orderUpdate: () => {
-    return new Promise((resolve, reject) => {
-      const inv = String(invoice || '').trim();
-
-      const query = `
-        SELECT o.id, o.invoice,
-          o.amount,
-          o.user_id,
-          o.status
-        FROM orders o
-        WHERE o.invoice = ?
-        LIMIT 1;
-      `;
-
-      conn.query(query, [inv], (e, result) => {
-        if (e) reject(new Error(e));
-        else resolve(result?.[0] || null);
-      });
-    });
-  },
-
   orderUpdateWaybill: (waybill, receipt, invoice) => {
     return new Promise((resolve, reject) => {
       const query = `
@@ -186,7 +165,7 @@ module.exports = {
     });
   },
 
-  updatePayment: (orderId, status) => {
+  updateStatus: (invoice, status) => {
     return new Promise((resolve, reject) => {
       var query = `
         UPDATE orders SET status = ? WHERE invoice = ?
@@ -198,7 +177,11 @@ module.exports = {
       `;
       }
 
-      conn.query(query, [status, orderId], (e, result) => {
+      if (status == 'FINISHED') {
+        query = `UPDATE orders SET status = ?, finished_at = NOW() WHERE invoice = ?`;
+      }
+
+      conn.query(query, [status, invoice], (e, result) => {
         if (e) reject(new Error(e));
         else resolve(result?.[0] || null);
       });

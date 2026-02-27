@@ -356,15 +356,17 @@ module.exports = {
       const { type } = req.params;
       const { invoice } = req.body;
 
-      if (typeof invoice == 'undefined' || invoice == '') throw new Error('invoice wajib diisi');
+      if (typeof invoice === 'undefined' || invoice === '') {
+        throw new Error('invoice wajib diisi');
+      }
 
       const order = await Order.detail(invoice);
 
-      var waybill;
-      var receipt;
+      let waybill;
+      let receipt;
 
       switch (type) {
-        case 'WAYBILL':
+        case 'WAYBILL': {
           const url = process.env.WAYBILL_JNE;
 
           if (order.paid_at == null) throw new Error('Order belum dibayar');
@@ -386,18 +388,18 @@ module.exports = {
             OLSHOP_SHIPPER_NAME: shop.name,
             OLSHOP_SHIPPER_ADDR1: shop.address,
             OLSHOP_SHIPPER_ADDR2: shop.address,
-            OLSHOP_SHIPPER_ADDR3: '', // optional
+            OLSHOP_SHIPPER_ADDR3: '',
             OLSHOP_SHIPPER_CITY: shop.city,
-            OLSHOP_SHIPPER_REGION: '', // optional
+            OLSHOP_SHIPPER_REGION: '',
             OLSHOP_SHIPPER_ZIP: shop.zip_code,
             OLSHOP_SHIPPER_PHONE: parseInt(shop.phone),
 
             OLSHOP_RECEIVER_NAME: mosque.name,
             OLSHOP_RECEIVER_ADDR1: mosque.detail_address,
             OLSHOP_RECEIVER_ADDR2: mosque.detail_address,
-            OLSHOP_RECEIVER_ADDR3: '', // optional
+            OLSHOP_RECEIVER_ADDR3: '',
             OLSHOP_RECEIVER_CITY: mosque.city,
-            OLSHOP_RECEIVER_REGION: '', // optional
+            OLSHOP_RECEIVER_REGION: '',
             OLSHOP_RECEIVER_ZIP: mosque.zip_code,
             OLSHOP_RECEIVER_PHONE: parseInt(mosque.phone),
 
@@ -419,17 +421,15 @@ module.exports = {
 
           const config = {
             method: 'POST',
-            url: url,
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            data: data,
+            url,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            data,
           };
 
           const result = await axios(config);
 
-          if (result.data.detail.length != 0) {
-            if (result.data.detail[0].status.toLowerCase() == 'error') {
+          if (result.data.detail.length !== 0) {
+            if (result.data.detail[0].status.toLowerCase() === 'error') {
               if (result.data.detail[0].cnote_no == null) {
                 throw new Error(
                   `${result.data.detail[0].reason} - ${result.data.detail[0].cnote_no}`,
@@ -442,15 +442,22 @@ module.exports = {
           receipt = `${process.env.BASE_URL}/api/v1/order/${invoice}/receipt.png`;
 
           await Order.orderUpdateWaybill(waybill, receipt, invoice);
-
-        default:
           break;
+        }
+
+        case 'FINISHED': {
+          if (order.waybill_created_at == null) throw new Error('No Resi belum ada');
+
+          await Order.updateStatus(invoice, type);
+          break;
+        }
+
+        default: {
+          throw new Error(`Status tidak ditemukan: ${type}`);
+        }
       }
 
-      misc.response(res, 200, false, 'OK', {
-        waybill: waybill,
-        receipt: receipt,
-      });
+      misc.response(res, 200, false, 'OK', { waybill, receipt });
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);
@@ -467,7 +474,7 @@ module.exports = {
       }
 
       if (!order.waybill) {
-        return res.status(400).json({ error: true, message: 'Waybill belum ada' });
+        return res.status(400).json({ error: true, message: 'No Resi belum ada' });
       }
 
       const shop = await Shop.detail(order.shop_id);
@@ -537,7 +544,7 @@ module.exports = {
       const { order_id, status } = req.body;
 
       if (status == 'PAID') {
-        await Order.updatePayment(order_id, status);
+        await Order.updateStatus(order_id, status);
 
         var order = await Order.detail(order_id);
 
