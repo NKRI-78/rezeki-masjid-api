@@ -240,33 +240,33 @@ module.exports = {
     try {
       const { mosque_id, items } = req.body;
 
-      if (typeof mosque_id == 'undefined' || mosque_id == '')
+      if (typeof mosque_id === 'undefined' || mosque_id === '')
         throw new Error('mosque_id wajib diisi');
 
-      if (items.length == 0) throw new Error('items tidak boleh kosong');
+      if (!Array.isArray(items) || items.length === 0) throw new Error('items tidak boleh kosong');
 
-      var weight = 0;
+      let weight = 0; // total gram
 
       for (const i in items) {
-        var item = items[i];
+        const item = items[i];
 
-        var product = await Product.detail(item.product_id);
-
+        const product = await Product.detail(item.product_id);
         weight += Number(product.weight) * Number(item.qty);
       }
 
       const selectMosqueDistrict = await Order.selectMosqueDistrict(mosque_id);
-
-      if (selectMosqueDistrict.length == 0) throw new Error('Alamat masjid belum lengkap');
+      if (selectMosqueDistrict.length === 0) throw new Error('Alamat masjid belum lengkap');
 
       const destinationTariffCode = await Order.getTariffCode(selectMosqueDistrict[0].district);
+
+      const weightKg = gramsToKg(weight); // pastikan return number (kg)
 
       const body = new URLSearchParams({
         username: process.env.USERNAME_JNE,
         api_key: process.env.KEY_API_JNE,
         from: 'CGK10000', // JAKARTA
         thru: destinationTariffCode,
-        weight: gramsToKg(weight),
+        weight: weightKg,
       }).toString();
 
       const config = {
@@ -282,7 +282,60 @@ module.exports = {
 
       const result = await axios(config);
 
-      misc.response(res, 200, false, 'OK', result.data.price);
+      // ---------------------------
+      // HELPERS: SERVICE NAME MAP
+      // ---------------------------
+      const getServiceFullName = (serviceDisplay) => {
+        const code = String(serviceDisplay || '').toUpperCase();
+
+        // CTC variants
+        if (code.startsWith('CTCYES')) {
+          return 'City Transshipment Center - Yakin Esok Sampai (Next Day)';
+        }
+        if (code.startsWith('CTCSPS')) {
+          return 'City Transshipment Center - Super Speed';
+        }
+        if (code.startsWith('CTC')) {
+          return 'City Transshipment Center';
+        }
+
+        // JTR variants (JTR, JTR<130, JTR>130, dst)
+        if (code.includes('JTR')) {
+          return 'JTR (JNE Trucking - Minimum 10 Kg)';
+        }
+
+        return serviceDisplay; // fallback
+      };
+
+      // ---------------------------
+      // FILTER + SORT + ENRICH
+      // ---------------------------
+      let prices = Array.isArray(result?.data?.price) ? result.data.price : [];
+
+      // tampilkan JTR hanya jika >= 10kg
+      if (Number(weightKg) < 10) {
+        prices = prices.filter((r) => {
+          const display = String(r.service_display || '').toUpperCase();
+          const code = String(r.service_code || '').toUpperCase();
+          return !display.includes('JTR') && !code.includes('JTR');
+        });
+      }
+
+      // sort termurah di atas
+      prices.sort((a, b) => Number(a.price) - Number(b.price));
+
+      // tambahkan nama panjang
+      prices = prices.map((r) => ({
+        service_name: getServiceFullName(r.service_display),
+        ...r,
+      }));
+
+      // response
+      misc.response(res, 200, false, 'OK', {
+        weight_gram: weight,
+        weight_kg: Number(weightKg),
+        items: prices,
+      });
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);
@@ -474,11 +527,31 @@ module.exports = {
   callback: async (req, res) => {
     try {
       const { order_id, status } = req.body;
+
       if (status == 'PAID') {
         await Order.updatePayment(order_id, status);
 
-        // var order = await Order.detail(order_id);
-        // var mosqueId = order.mosque_id;
+        var order = await Order.detail(order_id);
+
+        if (order.status == 'PAID') throw new Error('Sudah dibayar');
+
+        var mosqueId = order.mosque_id;
+
+        var items = await Order.orderItem(order.id);
+
+        for (const i in items) {
+          var item = items[i];
+
+          var productId = item.id;
+
+          if (parseInt(item.stock) < parseInt(item.qty)) {
+            throw new Error(`Stock tidak cukup untuk produk ${productId}. Sisa: ${item.stock}`);
+          }
+
+          var currStock = parseInt(item.stock) - parseInt(item.qty);
+
+          await Mosque.updateAssignProductStock(currStock, productId, mosqueId);
+        }
       }
 
       misc.response(res, 200, false, 'Callback called');

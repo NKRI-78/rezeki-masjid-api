@@ -150,12 +150,12 @@ module.exports = {
     });
   },
 
-  updateAssignProduct: (needStuff, productId, mosqueId) => {
+  updateAssignProductStock: (stock, productId, mosqueId) => {
     return new Promise((resolve, reject) => {
       conn.query(
-        `UPDATE product_assigns SET need_stuff = ?, product_id = ? 
-        WHERE mosque_id = ?`,
-        [needStuff, productId, mosqueId],
+        `UPDATE product_assigns SET stock = ?
+        WHERE product_id = ? AND mosque_id = ?`,
+        [stock, productId, mosqueId],
         (e, result) => {
           if (e) reject(new Error(e));
           else resolve(result);

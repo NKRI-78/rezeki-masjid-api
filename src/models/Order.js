@@ -138,9 +138,10 @@ module.exports = {
   orderItem: (invoiceId) => {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT p.id, p.title, p.content, p.price, p.stock, p.weight, p.shop_id, p.created_at, p.updated_at
+        SELECT p.id, p.title, p.content, p.price, pa.stock, oi.qty, p.weight, p.shop_id, p.created_at, p.updated_at
         FROM order_items oi
         INNER JOIN products p ON p.id = oi.product_id 
+        INNER JOIN product_assigns pa ON p.id = pa.product_id 
         WHERE oi.invoice_id = ?
       `;
 
@@ -187,11 +188,15 @@ module.exports = {
 
   updatePayment: (orderId, status) => {
     return new Promise((resolve, reject) => {
-      const inv = String(invoice || '').trim();
-
-      const query = `
+      var query = `
         UPDATE orders SET status = ? WHERE invoice = ?
       `;
+
+      if (status == 'PAID') {
+        query = `
+        UPDATE orders SET status = ?, paid_at = NOW() WHERE invoice = ?
+      `;
+      }
 
       conn.query(query, [status, orderId], (e, result) => {
         if (e) reject(new Error(e));
