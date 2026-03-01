@@ -171,13 +171,19 @@ module.exports = {
         UPDATE orders SET status = ? WHERE invoice = ?
       `;
 
-      if (status == 'PAID') {
+      if (status.toLowerCase() == 'paid') {
         query = `
         UPDATE orders SET status = ?, paid_at = NOW() WHERE invoice = ?
       `;
       }
 
-      if (status == 'FINISHED') {
+      if (status.toLowerCase() == 'process') {
+        query = `
+        UPDATE orders SET status = ?, process_at = NOW() WHERE invoice = ?
+      `;
+      }
+
+      if (status.toLowerCase() == 'finished') {
         query = `UPDATE orders SET status = ?, finished_at = NOW() WHERE invoice = ?`;
       }
 

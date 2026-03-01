@@ -427,17 +427,56 @@ module.exports = {
       }
 
       const order = await Order.detail(invoice);
-
       if (!order) throw new Error('Order tidak ditemukan');
+
+      // Normalisasi type biar aman dari case-sensitive
+      const next = String(type || '').toUpperCase();
 
       let waybill;
       let receipt;
 
-      switch (type) {
-        case 'WAYBILL': {
-          const url = process.env.WAYBILL_JNE;
+      /**
+       * RULE URUTAN (state machine):
+       * PAID (paid_at != null)
+       * -> PROCESS (process_at != null)
+       * -> WAYBILL (waybill_created_at != null)
+       * -> FINISHED (finished_at != null)
+       *
+       * Catatan:
+       * - "dibayar" event-nya biasanya dari payment callback, bukan endpoint ini.
+       * - Endpoint ini hanya mengurus PROCESS, WAYBILL, FINISHED.
+       */
 
+      // Optional: cegah perubahan setelah finished
+      if (order.finished_at != null) {
+        throw new Error('Order sudah FINISHED, status tidak bisa diubah lagi');
+      }
+
+      switch (next) {
+        case 'PROCESS': {
+          // Wajib sudah dibayar
           if (order.paid_at == null) throw new Error('Order belum dibayar');
+
+          // Cegah double / loncat balik
+          if (order.process_at != null) throw new Error('Order sudah diproses');
+          if (order.waybill_created_at != null)
+            throw new Error('Order sudah generate resi, tidak bisa kembali ke PROCESS');
+
+          await Order.updateStatus(invoice, 'process');
+          break;
+        }
+
+        case 'WAYBILL': {
+          // Wajib urut: PAID -> PROCESS -> WAYBILL
+          if (order.paid_at == null) throw new Error('Order belum dibayar');
+          if (order.process_at == null) throw new Error('Order belum diproses');
+
+          // Cegah double generate
+          if (order.waybill_created_at != null) {
+            throw new Error('Resi sudah pernah dibuat');
+          }
+
+          const url = process.env.WAYBILL_JNE;
 
           const shop = await Shop.detail(order.shop_id);
           const mosque = await Mosque.detail(order.mosque_id);
@@ -496,13 +535,10 @@ module.exports = {
 
           const result = await axios(config);
 
-          if (result.data.detail.length !== 0) {
-            if (result.data.detail[0].status.toLowerCase() === 'error') {
-              if (result.data.detail[0].cnote_no == null) {
-                throw new Error(
-                  `${result.data.detail[0].reason} - ${result.data.detail[0].cnote_no}`,
-                );
-              }
+          if (result?.data?.detail?.length) {
+            const d0 = result.data.detail[0];
+            if (String(d0.status || '').toLowerCase() === 'error') {
+              throw new Error(`${d0.reason} - ${d0.cnote_no}`);
             }
           }
 
@@ -510,13 +546,20 @@ module.exports = {
           receipt = `${process.env.BASE_URL}/api/v1/order/${invoice}/receipt.png`;
 
           await Order.orderUpdateWaybill(waybill, receipt, invoice);
+
           break;
         }
 
         case 'FINISHED': {
+          // Wajib urut: PAID -> PROCESS -> WAYBILL -> FINISHED
+          if (order.paid_at == null) throw new Error('Order belum dibayar');
+          if (order.process_at == null) throw new Error('Order belum diproses');
           if (order.waybill_created_at == null) throw new Error('No Resi belum ada');
 
-          await Order.updateStatus(invoice, type);
+          // Cegah double finished
+          if (order.finished_at != null) throw new Error('Order sudah selesai');
+
+          await Order.updateStatus(invoice, 'finished');
           break;
         }
 
