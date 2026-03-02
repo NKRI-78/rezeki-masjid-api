@@ -446,7 +446,7 @@ module.exports = {
   updateStatus: async (req, res) => {
     try {
       const { type } = req.params;
-      const { invoice } = req.body;
+      const { invoice, tracking_dummy } = req.body;
 
       if (typeof invoice === 'undefined' || invoice === '') {
         throw new Error('invoice wajib diisi');
@@ -576,7 +576,7 @@ module.exports = {
             throw new Error('No Resi belum ada');
           }
 
-          const useDummyTracking = String(process.env.TRACKING_DUMMY || '').toLowerCase() === 'true';
+          const useDummyTracking = tracking_dummy === true || String(tracking_dummy || '').toLowerCase() === 'true';
 
           if (useDummyTracking) {
             tracking = {
