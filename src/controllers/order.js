@@ -555,20 +555,7 @@ module.exports = {
           break;
         }
 
-        case 'WAYBILL': {
-          // Wajib urut: PAID -> PROCESS -> WAYBILL
-          if (order.paid_at == null) throw new Error('Order belum dibayar');
-          if (order.process_at == null) throw new Error('Order belum diproses');
-
-          // Cegah double generate
-          if (order.waybill_created_at != null) {
-            throw new Error('Resi sudah pernah dibuat');
-          }
-
-          await generateWaybill();
-
-          break;
-        }
+        // case 'WAYBILL' dihapus: waybill sekarang otomatis dibuat saat PROCESS.
 
         case 'FINISHED': {
           // Wajib urut: PAID -> PROCESS -> WAYBILL -> FINISHED
@@ -584,7 +571,7 @@ module.exports = {
         }
 
         default: {
-          throw new Error(`Status tidak ditemukan: ${type}`);
+          throw new Error(`Status tidak valid. Gunakan PROCESS atau FINISHED`);
         }
       }
 
