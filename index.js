@@ -9,6 +9,7 @@ const config = require('./src/configs/configs');
 const port = config.port;
 const cors = require('cors');
 const routerNav = require('./src/index');
+const { httpLogger } = require('./src/middlewares/logging');
 
 app.use(fileUpload());
 app.use(logger('dev'));
@@ -18,6 +19,7 @@ app.use(compression());
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(httpLogger());
 
 app.use('/', routerNav);
 

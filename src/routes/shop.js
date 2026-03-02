@@ -3,7 +3,7 @@ const router = express.Router();
 
 const shop = require('../controllers/shop');
 
-const jwt = require('../middleware/jwt');
+const jwt = require('../middlewares/jwt');
 
 router.get('/list', shop.list);
 router.get('/:id', shop.detail);
