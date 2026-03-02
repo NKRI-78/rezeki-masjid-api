@@ -448,6 +448,79 @@ module.exports = {
       let waybill;
       let receipt;
 
+      const generateWaybill = async () => {
+        const url = process.env.WAYBILL_JNE;
+
+        const shop = await Shop.detail(order.shop_id);
+        const mosque = await Mosque.detail(order.mosque_id);
+
+        const orig = await Order.getTariffCode(shop.district);
+        const dest = await Order.getTariffCode(mosque.district);
+
+        const data = {
+          username: process.env.USERNAME_JNE,
+          api_key: process.env.KEY_API_JNE,
+
+          OLSHOP_BRANCH: 'CGK000', // JAKARTA
+          OLSHOP_CUST: '80580700',
+          OLSHOP_ORDERID: order.id,
+
+          OLSHOP_SHIPPER_NAME: shop.name,
+          OLSHOP_SHIPPER_ADDR1: shop.address,
+          OLSHOP_SHIPPER_ADDR2: shop.address,
+          OLSHOP_SHIPPER_ADDR3: '',
+          OLSHOP_SHIPPER_CITY: shop.city,
+          OLSHOP_SHIPPER_REGION: '',
+          OLSHOP_SHIPPER_ZIP: shop.zip_code,
+          OLSHOP_SHIPPER_PHONE: parseInt(shop.phone),
+
+          OLSHOP_RECEIVER_NAME: mosque.name,
+          OLSHOP_RECEIVER_ADDR1: mosque.detail_address,
+          OLSHOP_RECEIVER_ADDR2: mosque.detail_address,
+          OLSHOP_RECEIVER_ADDR3: '',
+          OLSHOP_RECEIVER_CITY: mosque.city,
+          OLSHOP_RECEIVER_REGION: '',
+          OLSHOP_RECEIVER_ZIP: mosque.zip_code,
+          OLSHOP_RECEIVER_PHONE: parseInt(mosque.phone),
+
+          OLSHOP_QTY: order.product_qty,
+          OLSHOP_WEIGHT: order.product_weight,
+          OLSHOP_GOODSDESC: '-',
+          OLSHOP_GOODSVALUE: parseInt(order.amount),
+          OLSHOP_GOODSTYPE: 1,
+          OLSHOP_INST: '-',
+          OLSHOP_INS_FLAG: 'N',
+
+          OLSHOP_ORIG: orig,
+          OLSHOP_DEST: dest,
+          OLSHOP_SERVICE: order.jne_service_code,
+
+          OLSHOP_COD_FLAG: 'N',
+          OLSHOP_COD_AMOUNT: '0',
+        };
+
+        const config = {
+          method: 'POST',
+          url,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          data,
+        };
+
+        const result = await axios(config);
+
+        if (result?.data?.detail?.length) {
+          const d0 = result.data.detail[0];
+          if (String(d0.status || '').toLowerCase() === 'error') {
+            throw new Error(`${d0.reason} - ${d0.cnote_no}`);
+          }
+        }
+
+        waybill = result.data.detail[0].cnote_no;
+        receipt = `${process.env.BASE_URL}/api/v1/order/${invoice}/receipt.png`;
+
+        await Order.orderUpdateWaybill(waybill, receipt, invoice);
+      };
+
       /**
        * RULE URUTAN (state machine):
        * PAID (paid_at != null)
@@ -476,6 +549,9 @@ module.exports = {
             throw new Error('Order sudah generate resi, tidak bisa kembali ke PROCESS');
 
           await Order.updateStatus(invoice, 'process');
+
+          // Requirement terbaru: saat PROCESS langsung generate waybill otomatis
+          await generateWaybill();
           break;
         }
 
@@ -489,76 +565,7 @@ module.exports = {
             throw new Error('Resi sudah pernah dibuat');
           }
 
-          const url = process.env.WAYBILL_JNE;
-
-          const shop = await Shop.detail(order.shop_id);
-          const mosque = await Mosque.detail(order.mosque_id);
-
-          const orig = await Order.getTariffCode(shop.district);
-          const dest = await Order.getTariffCode(mosque.district);
-
-          const data = {
-            username: process.env.USERNAME_JNE,
-            api_key: process.env.KEY_API_JNE,
-
-            OLSHOP_BRANCH: 'CGK000', // JAKARTA
-            OLSHOP_CUST: '80580700',
-            OLSHOP_ORDERID: order.id,
-
-            OLSHOP_SHIPPER_NAME: shop.name,
-            OLSHOP_SHIPPER_ADDR1: shop.address,
-            OLSHOP_SHIPPER_ADDR2: shop.address,
-            OLSHOP_SHIPPER_ADDR3: '',
-            OLSHOP_SHIPPER_CITY: shop.city,
-            OLSHOP_SHIPPER_REGION: '',
-            OLSHOP_SHIPPER_ZIP: shop.zip_code,
-            OLSHOP_SHIPPER_PHONE: parseInt(shop.phone),
-
-            OLSHOP_RECEIVER_NAME: mosque.name,
-            OLSHOP_RECEIVER_ADDR1: mosque.detail_address,
-            OLSHOP_RECEIVER_ADDR2: mosque.detail_address,
-            OLSHOP_RECEIVER_ADDR3: '',
-            OLSHOP_RECEIVER_CITY: mosque.city,
-            OLSHOP_RECEIVER_REGION: '',
-            OLSHOP_RECEIVER_ZIP: mosque.zip_code,
-            OLSHOP_RECEIVER_PHONE: parseInt(mosque.phone),
-
-            OLSHOP_QTY: order.product_qty,
-            OLSHOP_WEIGHT: order.product_weight,
-            OLSHOP_GOODSDESC: '-',
-            OLSHOP_GOODSVALUE: parseInt(order.amount),
-            OLSHOP_GOODSTYPE: 1,
-            OLSHOP_INST: '-',
-            OLSHOP_INS_FLAG: 'N',
-
-            OLSHOP_ORIG: orig,
-            OLSHOP_DEST: dest,
-            OLSHOP_SERVICE: order.jne_service_code,
-
-            OLSHOP_COD_FLAG: 'N',
-            OLSHOP_COD_AMOUNT: '0',
-          };
-
-          const config = {
-            method: 'POST',
-            url,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            data,
-          };
-
-          const result = await axios(config);
-
-          if (result?.data?.detail?.length) {
-            const d0 = result.data.detail[0];
-            if (String(d0.status || '').toLowerCase() === 'error') {
-              throw new Error(`${d0.reason} - ${d0.cnote_no}`);
-            }
-          }
-
-          waybill = result.data.detail[0].cnote_no;
-          receipt = `${process.env.BASE_URL}/api/v1/order/${invoice}/receipt.png`;
-
-          await Order.orderUpdateWaybill(waybill, receipt, invoice);
+          await generateWaybill();
 
           break;
         }
