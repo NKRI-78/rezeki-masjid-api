@@ -418,12 +418,17 @@ module.exports = {
         const timesRaw = String(r.times || '').trim().toUpperCase();
         const etdUnit = timesRaw === 'H' ? 'jam' : 'hari';
 
+        let etdText = `${r.etd_from}-${r.etd_thru} ${etdUnit}`;
+        if (timesRaw === 'H' && Number(r.etd_from) === 0 && Number(r.etd_thru) === 24) {
+          etdText = 'maks. 24 jam (sejak pickup)';
+        }
+
         return {
           service_label: getServiceLabel(r.service_display, r.service_code),
           ...r,
           times: timesRaw || 'D',
           etd_unit: etdUnit,
-          etd_text: `${r.etd_from}-${r.etd_thru} ${etdUnit}`,
+          etd_text: etdText,
         };
       });
 
