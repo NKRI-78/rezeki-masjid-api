@@ -576,9 +576,10 @@ module.exports = {
             throw new Error('No Resi belum ada');
           }
 
-          const trackingUrlTemplate =
-            process.env.TRACKING_JNE ||
-            'https://apiv2.jne.co.id:10205/tracing/api/list/v1/cnote/{AWB}';
+          const trackingUrlTemplate = process.env.TRACKING_JNE;
+          if (!trackingUrlTemplate) {
+            throw new Error('TRACKING_JNE belum diset di env');
+          }
 
           const trackingUrl = trackingUrlTemplate.replace('{AWB}', encodeURIComponent(order.waybill));
 
