@@ -72,6 +72,11 @@ module.exports = {
             phone: user.phone,
             role: user.role == 1 ? 'admin' : 'user',
           },
+          paid_at: row.paid_at,
+          process_at: row.process_at,
+          waybill_created_at: row.waybill_created_at,
+          finished_at: row.finished_at,
+          created_at: row.created_at,
           expire_at: row.expire_at,
         });
       }
@@ -148,6 +153,11 @@ module.exports = {
           phone: user.phone,
           role: user.role == 1 ? 'admin' : 'user',
         },
+        paid_at: row.paid_at,
+        process_at: row.process_at,
+        waybill_created_at: row.waybill_created_at,
+        finished_at: row.finished_at,
+        created_at: row.created_at,
         expire_at: row.expire_at,
       });
     } catch (e) {
