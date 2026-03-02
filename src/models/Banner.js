@@ -18,6 +18,7 @@ module.exports = {
         SELECT
           b.id,
           b.path,
+          b.link,
           b.created_at,
           b.updated_at
         FROM banners b
@@ -61,6 +62,7 @@ module.exports = {
         SELECT
           b.id,
           b.path,
+          b.link,
           b.created_at,
           b.updated_at
         FROM banners b
