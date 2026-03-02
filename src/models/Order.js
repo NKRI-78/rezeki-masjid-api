@@ -140,10 +140,18 @@ module.exports = {
   orderItem: (invoiceId) => {
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT p.id, p.title, p.content, p.price, pa.stock, oi.qty, p.weight, p.shop_id, p.created_at, p.updated_at
+        SELECT
+          p.id, p.title, p.content, p.price,
+          pa.stock,
+          oi.qty,
+          p.weight, p.shop_id, p.created_at, p.updated_at
         FROM order_items oi
-        INNER JOIN products p ON p.id = oi.product_id 
-        INNER JOIN product_assigns pa ON p.id = pa.product_id 
+        JOIN products p ON p.id = oi.product_id
+        JOIN (
+          SELECT product_id, SUM(stock) AS stock
+          FROM product_assigns
+          GROUP BY product_id
+        ) pa ON pa.product_id = p.id
         WHERE oi.invoice_id = ?
       `;
 
