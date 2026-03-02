@@ -1,8 +1,6 @@
 const misc = require('../helpers/response');
 const utils = require('../helpers/utils');
 const jwt = require('jsonwebtoken');
-const axios = require('axios');
-const bcrypt = require('bcryptjs');
 const Auth = require('../models/Auth');
 const User = require('../models/User');
 
@@ -34,6 +32,7 @@ module.exports = {
 
       var payload = {
         id: user.id,
+        role: user.role,
         authorized: true,
       };
 
@@ -88,6 +87,7 @@ module.exports = {
 
       var payload = {
         id: insertId,
+        role: 'user',
         authorized: true,
       };
 
@@ -144,6 +144,7 @@ module.exports = {
 
           var payload = {
             id: checkOtpIsValid[0].id,
+            role: checkOtpIsValid[0].role,
             authorized: true,
           };
 

@@ -104,10 +104,11 @@ module.exports = {
 
   checkOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT u.id, u.otp, u.email, u.phone, p.fullname, u.created_at
+      const query = `SELECT u.id, u.otp, u.email, u.phone, p.fullname, r.name AS role, u.created_at
                 FROM users u
                 INNER JOIN profiles p
                 ON u.id = p.user_id
+                INNER JOIN roles r ON r.id = u.role
                 WHERE u.email = '${email}' 
                 AND u.otp = '${otp}' 
                 AND u.is_active = 'disabled'`;

@@ -12,11 +12,12 @@ const Mosque = require('../models/Mosque');
 module.exports = {
   list: async (req, res) => {
     const userId = req.decoded.id;
+    const role = req.decoded.role;
 
     try {
       const { page = 1, limit = 10, search = '', status } = req.query;
 
-      const rows = await Order.list({ page, limit, search, status, user_id: userId });
+      const rows = await Order.list({ page, limit, search, status, user_id: userId, role });
 
       var items = [];
 
