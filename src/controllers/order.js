@@ -576,6 +576,36 @@ module.exports = {
             throw new Error('No Resi belum ada');
           }
 
+          const useDummyTracking = String(process.env.TRACKING_DUMMY || '').toLowerCase() === 'true';
+
+          if (useDummyTracking) {
+            tracking = {
+              source: 'dummy',
+              awb: order.waybill,
+              invoice: order.invoice,
+              status: 'ON_PROCESS',
+              courier: 'JNE',
+              history: [
+                {
+                  date: '2026-03-02 09:00:00',
+                  desc: 'Shipment information received',
+                  location: 'Jakarta',
+                },
+                {
+                  date: '2026-03-02 12:30:00',
+                  desc: 'Package picked up by courier',
+                  location: 'Jakarta Selatan',
+                },
+                {
+                  date: '2026-03-02 16:10:00',
+                  desc: 'In transit to destination hub',
+                  location: 'Jakarta Selatan',
+                },
+              ],
+            };
+            break;
+          }
+
           const trackingUrlTemplate = process.env.TRACKING_JNE;
           if (!trackingUrlTemplate) {
             throw new Error('TRACKING_JNE belum diset di env');
