@@ -9,7 +9,6 @@ router.get('/:invoice/receipt.png', order.receiptPng);
 router.post('/courier-cost', order.courierCost);
 router.put('/status/:type', order.updateStatus);
 router.post('/', jwt, order.create);
-router.post('/callback', order.callback);
 router.delete('/:invoice', order.remove);
 
 module.exports = router;

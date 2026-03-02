@@ -661,41 +661,4 @@ module.exports = {
       misc.response(res, 400, true, e.message);
     }
   },
-
-  callback: async (req, res) => {
-    try {
-      const { order_id, status } = req.body;
-
-      if (status == 'PAID') {
-        await Order.updateStatus(order_id, status);
-
-        var order = await Order.detail(order_id);
-
-        if (order.status == 'PAID') throw new Error('Sudah dibayar');
-
-        var mosqueId = order.mosque_id;
-
-        var items = await Order.orderItem(order.id);
-
-        for (const i in items) {
-          var item = items[i];
-
-          var productId = item.id;
-
-          if (parseInt(item.stock) < parseInt(item.qty)) {
-            throw new Error(`Stok tidak cukup untuk produk ${productId}. Sisa: ${item.stock}`);
-          }
-
-          var currStock = parseInt(item.stock) - parseInt(item.qty);
-
-          await Mosque.updateAssignProductStock(currStock, productId, mosqueId);
-        }
-      }
-
-      misc.response(res, 200, false, 'Callback called');
-    } catch (e) {
-      console.log(e);
-      misc.response(res, 400, true, e.message);
-    }
-  },
 };
