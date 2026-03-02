@@ -43,6 +43,7 @@ module.exports = {
             is_active: product.is_active,
             price: product.price,
             stock: product.stock,
+            qty: product.qty,
             weight: product.weight,
           });
         }
@@ -117,6 +118,7 @@ module.exports = {
           is_active: product.is_active,
           price: product.price,
           stock: product.stock,
+          qty: product.qty,
           weight: product.weight,
         });
       }
