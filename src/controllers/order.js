@@ -579,27 +579,85 @@ module.exports = {
           const useDummyTracking = tracking_dummy === true || String(tracking_dummy || '').toLowerCase() === 'true';
 
           if (useDummyTracking) {
+            const now = new Date();
+            const fmt = (d) => {
+              const dd = String(d.getDate()).padStart(2, '0');
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const yyyy = d.getFullYear();
+              const hh = String(d.getHours()).padStart(2, '0');
+              const mi = String(d.getMinutes()).padStart(2, '0');
+              return `${dd}-${mm}-${yyyy} ${hh}:${mi}`;
+            };
+
+            const h1 = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+            const h2 = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+            const h3 = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
             tracking = {
-              source: 'dummy',
-              awb: order.waybill,
-              invoice: order.invoice,
-              status: 'ON_PROCESS',
-              courier: 'JNE',
+              cnote: {
+                cnote_no: order.waybill,
+                reference_number: String(order.id || ''),
+                cnote_origin: 'CGK10000',
+                cnote_destination: 'CGK99999',
+                cnote_services_code: order.jne_service_code || 'REG',
+                servicetype: order.jne_service_code || 'REG',
+                cnote_cust_no: process.env.USERNAME_JNE || '',
+                cnote_date: h1.toISOString(),
+                cnote_pod_receiver: null,
+                cnote_receiver_name: 'PENERIMA',
+                city_name: 'JAKARTA',
+                cnote_pod_date: null,
+                pod_status: 'ON_PROCESS',
+                last_status: `WITH DELIVERY COURIER [${fmt(h3)}]`,
+                cust_type: '060',
+                cnote_amount: String(order.amount || 0),
+                cnote_weight: String(order.product_weight || 0),
+                pod_code: null,
+                keterangan: null,
+                cnote_goods_descr: '-',
+                freight_charge: String(order.amount || 0),
+                shippingcost: String(order.amount || 0),
+                insuranceamount: '0',
+                priceperkg: String(order.amount || 0),
+                signature: null,
+                photo: null,
+                long: null,
+                lat: null,
+                estimate_delivery: '1 Days',
+              },
+              detail: [
+                {
+                  cnote_no: order.waybill,
+                  cnote_date: h1.toISOString(),
+                  cnote_weight: String(order.product_weight || 0),
+                  cnote_origin: 'CGK10000',
+                  cnote_shipper_name: 'TOKO REJEKI',
+                  cnote_shipper_addr1: '-',
+                  cnote_shipper_addr2: ' ',
+                  cnote_shipper_addr3: null,
+                  cnote_shipper_city: 'JAKARTA',
+                  cnote_receiver_name: 'PENERIMA',
+                  cnote_receiver_addr1: '-',
+                  cnote_receiver_addr2: null,
+                  cnote_receiver_addr3: null,
+                  cnote_receiver_city: 'JAKARTA',
+                },
+              ],
               history: [
                 {
-                  date: '2026-03-02 09:00:00',
-                  desc: 'Shipment information received',
-                  location: 'Jakarta',
+                  date: fmt(h1),
+                  desc: 'SHIPMENT RECEIVED BY JNE COUNTER OFFICER AT [JAKARTA]',
+                  code: 'RC1',
                 },
                 {
-                  date: '2026-03-02 12:30:00',
-                  desc: 'Package picked up by courier',
-                  location: 'Jakarta Selatan',
+                  date: fmt(h2),
+                  desc: 'PICKED UP BY COURIER [JAKARTA]',
+                  code: 'PU1',
                 },
                 {
-                  date: '2026-03-02 16:10:00',
-                  desc: 'In transit to destination hub',
-                  location: 'Jakarta Selatan',
+                  date: fmt(h3),
+                  desc: 'WITH DELIVERY COURIER [JAKARTA]',
+                  code: 'IP3',
                 },
               ],
             };
