@@ -413,11 +413,19 @@ module.exports = {
       // sort termurah di atas (price string)
       prices.sort((a, b) => Number(a.price) - Number(b.price));
 
-      // tambahkan label user friendly
-      prices = prices.map((r) => ({
-        service_label: getServiceLabel(r.service_display, r.service_code),
-        ...r,
-      }));
+      // tambahkan label user friendly + normalisasi unit estimasi
+      prices = prices.map((r) => {
+        const timesRaw = String(r.times || '').trim().toUpperCase();
+        const etdUnit = timesRaw === 'H' ? 'jam' : 'hari';
+
+        return {
+          service_label: getServiceLabel(r.service_display, r.service_code),
+          ...r,
+          times: timesRaw || 'D',
+          etd_unit: etdUnit,
+          etd_text: `${r.etd_from}-${r.etd_thru} ${etdUnit}`,
+        };
+      });
 
       misc.response(res, 200, false, 'OK', {
         weight_gram: weight,
