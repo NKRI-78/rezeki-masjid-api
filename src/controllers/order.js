@@ -460,6 +460,7 @@ module.exports = {
 
       let waybill;
       let receipt;
+      let tracking;
 
       const generateWaybill = async () => {
         const url = process.env.WAYBILL_JNE;
@@ -570,6 +571,36 @@ module.exports = {
 
         // case 'WAYBILL' dihapus: waybill sekarang otomatis dibuat saat PROCESS.
 
+        case 'TRACKING': {
+          if (order.waybill_created_at == null || !order.waybill) {
+            throw new Error('No Resi belum ada');
+          }
+
+          const trackingUrlTemplate =
+            process.env.TRACKING_JNE ||
+            'https://apiv2.jne.co.id:10205/tracing/api/list/v1/cnote/{AWB}';
+
+          const trackingUrl = trackingUrlTemplate.replace('{AWB}', encodeURIComponent(order.waybill));
+
+          const body = new URLSearchParams({
+            username: process.env.USERNAME_JNE,
+            api_key: process.env.KEY_API_JNE,
+          }).toString();
+
+          const trackingRes = await axios({
+            method: 'POST',
+            url: trackingUrl,
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              Accept: 'application/json',
+            },
+            data: body,
+          });
+
+          tracking = trackingRes?.data || null;
+          break;
+        }
+
         case 'FINISHED': {
           // Wajib urut: PAID -> PROCESS -> WAYBILL -> FINISHED
           if (order.paid_at == null) throw new Error('Order belum dibayar');
@@ -584,11 +615,11 @@ module.exports = {
         }
 
         default: {
-          throw new Error(`Status tidak valid. Gunakan PROCESS atau FINISHED`);
+          throw new Error(`Status tidak valid. Gunakan PROCESS, TRACKING, atau FINISHED`);
         }
       }
 
-      misc.response(res, 200, false, 'OK', { waybill, receipt });
+      misc.response(res, 200, false, 'OK', { waybill, receipt, tracking });
     } catch (e) {
       console.log(e);
       misc.response(res, 400, true, e.message);
