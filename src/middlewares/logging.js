@@ -9,7 +9,7 @@ const morganToWinston = {
 // HTTP logger middleware
 function httpLogger() {
   const fmt =
-    ':id :method :url :status :res[content-length] - :response-time ms q=:masked-query b=:masked-body';
+    ':method :url :status :res[content-length] - :response-time ms q=:masked-query b=:masked-body';
   return morgan(fmt, {
     stream: morganToWinston,
     skip: (req) => req.url === '/healthz',
