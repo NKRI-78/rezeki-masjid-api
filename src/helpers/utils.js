@@ -223,7 +223,7 @@ module.exports = {
   sendEmail: async (email, otp) => {
     await axios.post(process.env.EMAIL_URL, {
       to: email,
-      app: 'Bantu Masjid',
+      app: 'BantuMasjid',
       subject: 'Kode OTP Bantu Masjid APP',
       type: 'another-otp',
       body: `
