@@ -210,7 +210,6 @@ module.exports = {
               ...toMosqueResponse(row),
               path: medias?.[0]?.path || row.path,
               media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
-              paths: (medias || []).map((m) => m.path),
             }
           : null,
       });
@@ -276,7 +275,6 @@ module.exports = {
               ...toMosqueResponse(row),
               path: medias?.[0]?.path || row.path,
               media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
-              paths: (medias || []).map((m) => m.path),
             }
           : null,
       });
