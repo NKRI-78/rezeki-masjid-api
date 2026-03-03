@@ -47,8 +47,7 @@ module.exports = {
 
         const medias = await Mosque.getMediaPaths(item.id);
         item.media = (medias || []).map((m) => ({ id: m.id, path: m.path }));
-        item.paths = item.media.map((m) => m.path);
-        item.path = item.paths[0] || item.path || null;
+        item.path = item.media?.[0]?.path || item.path || null;
 
         var products = await Mosque.getAssignedProducts({ mosque_id: item.id });
 
@@ -127,7 +126,6 @@ module.exports = {
         phone: row.phone,
         path: medias?.[0]?.path || row.path,
         media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
-        paths: (medias || []).map((m) => m.path),
         detail_address: row.detail_address,
         province: row.province,
         city: row.city,
