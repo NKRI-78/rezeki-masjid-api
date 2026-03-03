@@ -118,7 +118,6 @@ module.exports = {
     try {
       if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
 
-      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
 
       if (!utils.validateEmail(email))
         throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
@@ -232,7 +231,6 @@ module.exports = {
 
     try {
       if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
-      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
       if (!utils.validateEmail(email))
         throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
 
@@ -254,24 +252,16 @@ module.exports = {
   },
 
   changePassword: async (req, res) => {
-    const { email, otp, password } = req.body;
+    const { email, password } = req.body;
 
     try {
       if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
       if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
-      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
       if (!utils.validateEmail(email))
         throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
 
-      const rows = await Auth.verifyForgotOtp(email, otp);
-      if (rows.length == 0) throw new Error('OTP salah');
-
-      const currentDate = new Date();
-      const otpCreated = rows[0].created_at;
-      const diff = new Date(currentDate.getTime() - otpCreated.getTime());
-      if (diff.getMinutes() > 2) {
-        return misc.response(res, 400, true, 'OTP kadaluwarsa');
-      }
+      const activeUser = await Auth.checkActiveEmail(email);
+      if (activeUser.length == 0) throw new Error('Pengguna tidak ditemukan');
 
       const passwordHash = await utils.encryptPassword(password);
       await Auth.updatePasswordByEmail(email, passwordHash);
@@ -285,11 +275,10 @@ module.exports = {
 
   // backward compatibility
   resetPassword: async (req, res) => {
-    const { email, otp, password } = req.body;
+    const { email, password } = req.body;
 
     try {
       if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
-      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
       if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
       if (!utils.validateEmail(email))
         throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
