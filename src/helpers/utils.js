@@ -223,14 +223,14 @@ module.exports = {
   sendEmail: async (email, otp) => {
     await axios.post(process.env.EMAIL_URL, {
       to: email,
-      app: 'RZM',
-      subject: 'Kode OTP Rezeki Masjid APP',
+      app: 'Bantu Masjid',
+      subject: 'Kode OTP Bantu Masjid APP',
       type: 'another-otp',
       body: `
       <div style="font-family: Helvetica, Arial, sans-serif; min-width:1000px; overflow:auto; line-height:1.8; background:#f6f8fb; padding:30px 0;">
         <div style="margin:0 auto; width:70%; background:#ffffff; border:1px solid #e9edf3; border-radius:10px; padding:28px;">
           <div style="border-bottom:1px solid #eef2f7; padding-bottom:14px; margin-bottom:18px;">
-            <h1 style="margin:0; font-size:18px; color:#0f172a;">RZM</h1>
+            <h1 style="margin:0; font-size:18px; color:#0f172a;">Bantu Masjid</h1>
             <p style="margin:6px 0 0; color:#64748b; font-size:13px;">Verifikasi Akun</p>
           </div>
 
@@ -256,7 +256,7 @@ module.exports = {
 
           <p style="margin:0; font-size:12px; color:#64748b;">
             Salam,<br/>
-            <b>Rezeki Masjid APP</b>
+            <b>Bantu Masjid APP</b>
           </p>
         </div>
       </div>
