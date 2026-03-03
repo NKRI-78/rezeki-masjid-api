@@ -175,6 +175,39 @@ module.exports = {
     });
   },
 
+
+  listTrackableForDelivery: () => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT id, invoice, waybill, status
+        FROM orders
+        WHERE waybill IS NOT NULL
+          AND waybill <> ''
+          AND status IN ('PROCESS')
+        ORDER BY id DESC
+      `;
+
+      conn.query(query, (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result || []);
+      });
+    });
+  },
+
+  markDelivered: (invoice) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE orders
+        SET status = 'DELIVERED', finished_at = NOW(), updated_at = NOW()
+        WHERE invoice = ?
+      `;
+
+      conn.query(query, [invoice], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result);
+      });
+    });
+  },
   updateStatus: (invoice, status) => {
     return new Promise((resolve, reject) => {
       var query = `
@@ -194,6 +227,10 @@ module.exports = {
       }
 
       if (status.toLowerCase() == 'finished') {
+        query = `UPDATE orders SET status = ?, finished_at = NOW() WHERE invoice = ?`;
+      }
+
+      if (status.toLowerCase() == 'delivered') {
         query = `UPDATE orders SET status = ?, finished_at = NOW() WHERE invoice = ?`;
       }
 

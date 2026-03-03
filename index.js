@@ -10,6 +10,7 @@ const port = config.port;
 const cors = require('cors');
 const routerNav = require('./src/index');
 const { httpLogger } = require('./src/middlewares/logging');
+const { startOrderTrackingCron } = require('./src/jobs/orderTrackingCron');
 
 app.use(fileUpload());
 app.use(logger('dev'));
@@ -25,6 +26,7 @@ app.use('/', routerNav);
 
 const server = app.listen(port, () => {
   console.log(`\n\t *** Server listening on PORT ${port}  ***`);
+  startOrderTrackingCron();
 });
 
 app.all('/*splat', (_, response) => {
