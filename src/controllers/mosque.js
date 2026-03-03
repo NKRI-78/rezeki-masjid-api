@@ -46,7 +46,8 @@ module.exports = {
         var item = items[i];
 
         const medias = await Mosque.getMediaPaths(item.id);
-        item.paths = medias.map((m) => m.path);
+        item.media = (medias || []).map((m) => ({ id: m.id, path: m.path }));
+        item.paths = item.media.map((m) => m.path);
         item.path = item.paths[0] || item.path || null;
 
         var products = await Mosque.getAssignedProducts({ mosque_id: item.id });
@@ -125,6 +126,7 @@ module.exports = {
         description: row.description,
         phone: row.phone,
         path: medias?.[0]?.path || row.path,
+        media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
         paths: (medias || []).map((m) => m.path),
         detail_address: row.detail_address,
         province: row.province,
@@ -209,6 +211,7 @@ module.exports = {
           ? {
               ...toMosqueResponse(row),
               path: medias?.[0]?.path || row.path,
+              media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
               paths: (medias || []).map((m) => m.path),
             }
           : null,
@@ -274,6 +277,7 @@ module.exports = {
           ? {
               ...toMosqueResponse(row),
               path: medias?.[0]?.path || row.path,
+              media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
               paths: (medias || []).map((m) => m.path),
             }
           : null,
