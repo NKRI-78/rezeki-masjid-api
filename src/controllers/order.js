@@ -413,24 +413,40 @@ module.exports = {
       // sort termurah di atas (price string)
       prices.sort((a, b) => Number(a.price) - Number(b.price));
 
-      // tambahkan label user friendly + normalisasi unit estimasi
-      prices = prices.map((r) => {
-        const timesRaw = String(r.times || '').trim().toUpperCase();
-        const etdUnit = timesRaw === 'H' ? 'jam' : 'hari';
+      // hilangkan layanan same-day, lalu normalisasi label + unit estimasi
+      prices = prices
+        .filter((r) => {
+          const timesRaw = String(r.times || '').trim().toUpperCase();
+          const display = String(r.service_display || '').toUpperCase();
+          const code = String(r.service_code || '').toUpperCase();
+          const label = String(r.service_label || '').toUpperCase();
 
-        let etdText = `${r.etd_from}-${r.etd_thru} ${etdUnit}`;
-        if (timesRaw === 'H' && Number(r.etd_from) === 0 && Number(r.etd_thru) === 24) {
-          etdText = 'maks. 24 jam (sejak pickup)';
-        }
+          const isSameDay =
+            timesRaw === 'H' ||
+            display.includes('SPS') ||
+            display.includes('SAME DAY') ||
+            code.includes('SPS') ||
+            label.includes('SAME DAY');
 
-        return {
-          service_label: getServiceLabel(r.service_display, r.service_code),
-          ...r,
-          times: timesRaw || 'D',
-          etd_unit: etdUnit,
-          etd_text: etdText,
-        };
-      });
+          return !isSameDay;
+        })
+        .map((r) => {
+          const timesRaw = String(r.times || '').trim().toUpperCase();
+          const etdUnit = timesRaw === 'H' ? 'jam' : 'hari';
+
+          let etdText = `${r.etd_from}-${r.etd_thru} ${etdUnit}`;
+          if (timesRaw === 'H' && Number(r.etd_from) === 0 && Number(r.etd_thru) === 24) {
+            etdText = 'maks. 24 jam (sejak pickup)';
+          }
+
+          return {
+            service_label: getServiceLabel(r.service_display, r.service_code),
+            ...r,
+            times: timesRaw || 'D',
+            etd_unit: etdUnit,
+            etd_text: etdText,
+          };
+        });
 
       misc.response(res, 200, false, 'OK', {
         weight_gram: weight,
