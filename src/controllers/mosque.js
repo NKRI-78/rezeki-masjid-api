@@ -3,6 +3,18 @@ const { toMosqueResponse, formatDistanceKm } = require('../helpers/utils');
 const Mosque = require('../models/Mosque');
 const Product = require('../models/Product');
 
+function normalizeMosquePaths(inputPath, inputPaths) {
+  if (Array.isArray(inputPaths) && inputPaths.length) {
+    return inputPaths.map((p) => String(p || '').trim()).filter(Boolean);
+  }
+
+  if (typeof inputPath === 'string' && inputPath.trim()) {
+    return [inputPath.trim()];
+  }
+
+  return [];
+}
+
 module.exports = {
   // GET /mosque?page=1&limit=10&search=abc&lat=-6.2&lng=106.8&sort=nearest&radius_km=5
   list: async (req, res) => {
@@ -32,6 +44,10 @@ module.exports = {
 
       for (const i in items) {
         var item = items[i];
+
+        const medias = await Mosque.getMediaPaths(item.id);
+        item.paths = medias.map((m) => m.path);
+        item.path = item.paths[0] || item.path || null;
 
         var products = await Mosque.getAssignedProducts({ mosque_id: item.id });
 
@@ -101,12 +117,15 @@ module.exports = {
         });
       }
 
+      const medias = await Mosque.getMediaPaths(row.id);
+
       var item = {
         id: row.id,
         name: row.name,
         description: row.description,
         phone: row.phone,
-        path: row.path,
+        path: medias?.[0]?.path || row.path,
+        paths: (medias || []).map((m) => m.path),
         detail_address: row.detail_address,
         province: row.province,
         city: row.city,
@@ -138,6 +157,7 @@ module.exports = {
         description,
         phone,
         path,
+        paths,
         detail_address,
         province,
         city,
@@ -151,7 +171,9 @@ module.exports = {
       if (!name) return misc.response(res, 400, true, 'nama wajib diisi');
       if (!description) return misc.response(res, 400, true, 'deskripsi wajib diisi');
       if (!phone) return misc.response(res, 400, true, 'phone wajib diisi');
-      if (!path) return misc.response(res, 400, true, 'path wajib diisi');
+
+      const normalizedPaths = normalizeMosquePaths(path, paths);
+      if (!normalizedPaths.length) return misc.response(res, 400, true, 'paths wajib diisi (minimal 1 gambar)');
       if (!detail_address) return misc.response(res, 400, true, 'detail alamat wajib diisi');
       if (!province) return misc.response(res, 400, true, 'provinsi wajib diisi');
       if (!city) return misc.response(res, 400, true, 'city wajib diisi');
@@ -166,6 +188,7 @@ module.exports = {
         description,
         phone,
         path,
+        paths,
         detail_address,
         province,
         city,
@@ -176,10 +199,19 @@ module.exports = {
         lng,
       });
 
+      await Mosque.replaceMediaPaths(created.id, normalizedPaths);
+
       const row = await Mosque.detail(created.id);
+      const medias = row ? await Mosque.getMediaPaths(row.id) : [];
 
       return misc.response(res, 201, false, 'Created', {
-        item: row ? toMosqueResponse(row) : null,
+        item: row
+          ? {
+              ...toMosqueResponse(row),
+              path: medias?.[0]?.path || row.path,
+              paths: (medias || []).map((m) => m.path),
+            }
+          : null,
       });
     } catch (e) {
       console.log(e);
@@ -196,6 +228,7 @@ module.exports = {
         description,
         phone,
         path,
+        paths,
         detail_address,
         province,
         city,
@@ -209,11 +242,14 @@ module.exports = {
       const exists = await Mosque.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
 
+      const normalizedPaths = normalizeMosquePaths(path, paths);
+
       const updated = await Mosque.update(id, {
         name,
         description,
         phone,
-        path,
+        path: normalizedPaths[0] || exists.path,
+        paths,
         detail_address,
         province,
         city,
@@ -226,10 +262,21 @@ module.exports = {
 
       if (!updated?.affectedRows) return misc.response(res, 400, true, 'Failed to update');
 
+      if (normalizedPaths.length) {
+        await Mosque.replaceMediaPaths(id, normalizedPaths);
+      }
+
       const row = await Mosque.detail(id);
+      const medias = row ? await Mosque.getMediaPaths(row.id) : [];
 
       return misc.response(res, 200, false, 'Updated', {
-        item: row ? toMosqueResponse(row) : null,
+        item: row
+          ? {
+              ...toMosqueResponse(row),
+              path: medias?.[0]?.path || row.path,
+              paths: (medias || []).map((m) => m.path),
+            }
+          : null,
       });
     } catch (e) {
       console.log(e);

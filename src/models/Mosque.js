@@ -164,6 +164,52 @@ module.exports = {
     });
   },
 
+
+  getMediaPaths: (mosque_id) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT id, path FROM mosque_medias WHERE mosque_id = ? ORDER BY id ASC`;
+      conn.query(query, [mosque_id], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result || []);
+      });
+    });
+  },
+
+  replaceMediaPaths: (mosque_id, paths = []) => {
+    return new Promise((resolve, reject) => {
+      conn.beginTransaction((txErr) => {
+        if (txErr) return reject(new Error(txErr));
+
+        conn.query(`DELETE FROM mosque_medias WHERE mosque_id = ?`, [mosque_id], (delErr) => {
+          if (delErr) {
+            return conn.rollback(() => reject(new Error(delErr)));
+          }
+
+          const clean = Array.isArray(paths)
+            ? paths.map((p) => String(p || '').trim()).filter(Boolean)
+            : [];
+
+          if (!clean.length) {
+            return conn.commit((cErr) => (cErr ? reject(new Error(cErr)) : resolve(true)));
+          }
+
+          const values = clean.map((path) => [mosque_id, path]);
+          const query = `INSERT INTO mosque_medias (mosque_id, path, created_at, updated_at) VALUES ?`;
+
+          conn.query(query, [values.map((v) => [v[0], v[1], new Date(), new Date()])], (insErr) => {
+            if (insErr) {
+              return conn.rollback(() => reject(new Error(insErr)));
+            }
+
+            conn.commit((cErr) => {
+              if (cErr) return conn.rollback(() => reject(new Error(cErr)));
+              resolve(true);
+            });
+          });
+        });
+      });
+    });
+  },
   detail: (id) => {
     return new Promise((resolve, reject) => {
       conn.query(`SELECT * FROM mosques WHERE id = ? LIMIT 1`, [id], (e, result) => {
