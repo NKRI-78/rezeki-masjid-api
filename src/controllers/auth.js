@@ -206,4 +206,55 @@ module.exports = {
       misc.response(res, 400, true, e.message);
     }
   },
+  forgotPassword: async (req, res) => {
+    const { email } = req.body;
+
+    try {
+      if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
+      if (!utils.validateEmail(email))
+        throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
+
+      const activeUser = await Auth.checkActiveEmail(email);
+      if (activeUser.length == 0) throw new Error('Pengguna tidak ditemukan');
+
+      const otp = generateOTP();
+      await Promise.all([Auth.updateOtp(otp, email), utils.sendEmail(email, otp)]);
+
+      misc.response(res, 200, false, 'OTP reset password berhasil dikirim ke email', {});
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
+
+  resetPassword: async (req, res) => {
+    const { email, otp, password } = req.body;
+
+    try {
+      if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
+      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
+      if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
+      if (!utils.validateEmail(email))
+        throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
+
+      const rows = await Auth.verifyForgotOtp(email, otp);
+      if (rows.length == 0) throw new Error('OTP salah');
+
+      const currentDate = new Date();
+      const otpCreated = rows[0].created_at;
+      const diff = new Date(currentDate.getTime() - otpCreated.getTime());
+      if (diff.getMinutes() > 2) {
+        return misc.response(res, 400, true, 'OTP kadaluwarsa');
+      }
+
+      const passwordHash = await utils.encryptPassword(password);
+      await Auth.updatePasswordByEmail(email, passwordHash);
+
+      misc.response(res, 200, false, 'Password berhasil diperbarui', {});
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
+
 };

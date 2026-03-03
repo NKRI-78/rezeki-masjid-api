@@ -137,6 +137,36 @@ module.exports = {
     });
   },
 
+
+  checkActiveEmail: (email) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT id, email, is_active FROM users WHERE email = '${email}' AND is_active = 'enabled' LIMIT 1`;
+      conn.query(query, (e, res) => {
+        if (e) reject(new Error(e));
+        else resolve(res || []);
+      });
+    });
+  },
+
+  verifyForgotOtp: (email, otp) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT id, email, otp, created_at FROM users WHERE email = '${email}' AND otp = '${otp}' AND is_active = 'enabled' LIMIT 1`;
+      conn.query(query, (e, res) => {
+        if (e) reject(new Error(e));
+        else resolve(res || []);
+      });
+    });
+  },
+
+  updatePasswordByEmail: (email, passwordHash) => {
+    return new Promise((resolve, reject) => {
+      const query = `UPDATE users SET password = '${passwordHash}', otp = NULL, updated_at = NOW() WHERE email = '${email}'`;
+      conn.query(query, (e, res) => {
+        if (e) reject(new Error(e));
+        else resolve(res);
+      });
+    });
+  },
   resendOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
       const query = `UPDATE users

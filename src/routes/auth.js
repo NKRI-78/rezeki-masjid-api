@@ -5,6 +5,8 @@ const auth = require('../controllers/auth');
 Route.post('/login', auth.login)
   .post('/register', auth.register)
   .post('/verify-otp', auth.verifyOtp)
-  .post('/resend-otp', auth.resendOtp);
+  .post('/resend-otp', auth.resendOtp)
+  .post('/forgot-password', auth.forgotPassword)
+  .post('/reset-password', auth.resetPassword);
 
 module.exports = Route;
