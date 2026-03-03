@@ -118,11 +118,6 @@ module.exports = {
       description: row.description,
       phone: row.phone,
       path: row.path,
-      paths: Array.isArray(row.paths)
-        ? row.paths
-        : typeof row.path === 'string' && row.path
-          ? [row.path]
-          : [],
       detail_address: row.detail_address,
       province: row.province,
       city: row.city,
