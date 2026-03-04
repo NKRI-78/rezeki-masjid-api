@@ -1,6 +1,14 @@
 const misc = require('../helpers/response');
-const { toProductResponse } = require('../helpers/utils');
 const Product = require('../models/Product');
+
+function normalizeProductPaths(inputPath, inputPaths) {
+  if (Array.isArray(inputPaths) && inputPaths.length) {
+    return inputPaths.map((p) => String(p || '').trim()).filter(Boolean);
+  }
+
+  if (typeof inputPath === 'string' && inputPath.trim()) return [inputPath.trim()];
+  return [];
+}
 
 module.exports = {
   // GET /products?page=1&limit=10&search=abc
@@ -30,6 +38,7 @@ module.exports = {
           id: row.id,
           title: row.title,
           media: media,
+          path: media?.[0]?.path || null,
           content: row.content,
           price: row.price,
           stock: row.stock,
@@ -92,6 +101,7 @@ module.exports = {
         id: row.id,
         title: row.title,
         media: media,
+        path: media?.[0]?.path || null,
         content: row.content,
         price: row.price,
         stock: row.stock,
@@ -119,7 +129,7 @@ module.exports = {
   // POST /products
   create: async (req, res) => {
     try {
-      const { title, content, price, stock, weight, shop_id } = req.body;
+      const { title, content, price, stock, weight, shop_id, path, paths } = req.body;
 
       // Validasi minimal
       if (!title) return misc.response(res, 400, true, 'title wajib diisi');
@@ -127,13 +137,38 @@ module.exports = {
         return misc.response(res, 400, true, 'harga wajib diisi');
       if (!shop_id) return misc.response(res, 400, true, 'shop_id wajib diisi');
 
-      const created = await Product.create({ title, content, price, stock, weight, shop_id });
+      const normalizedPaths = normalizeProductPaths(path, paths);
+      if (!normalizedPaths.length)
+        return misc.response(res, 400, true, 'paths wajib diisi (minimal 1 gambar)');
 
-      // Ambil detail setelah insert supaya response nested mosque ikut kebawa
+      const created = await Product.create({ title, content, price, stock, weight, shop_id });
+      await Product.replaceMediaPaths({ product_id: created.id, paths: normalizedPaths });
+
       const row = await Product.detail(created.id);
+      const media = row ? await Product.getMedia({ product_id: row.id }) : [];
 
       return misc.response(res, 201, false, 'Created', {
-        item: row ? toProductResponse(row) : null,
+        item: row
+          ? {
+              id: row.id,
+              title: row.title,
+              media,
+              path: media?.[0]?.path || null,
+              content: row.content,
+              price: row.price,
+              stock: row.stock,
+              weight: row.weight,
+              created_at: row.created_at,
+              updated_at: row.updated_at,
+              store: row.shop_id
+                ? {
+                    id: row.shop_id,
+                    name: row.shop_name,
+                    is_active: row.shop_active,
+                  }
+                : null,
+            }
+          : null,
       });
     } catch (e) {
       console.log(e);
@@ -145,7 +180,7 @@ module.exports = {
   update: async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, content, price, stock, weight, shop_id } = req.body;
+      const { title, content, price, stock, weight, shop_id, path, paths } = req.body;
 
       const exists = await Product.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Produk tidak ditemukan');
@@ -153,10 +188,36 @@ module.exports = {
       const updated = await Product.update(id, { title, content, price, stock, weight, shop_id });
       if (!updated.affectedRows) return misc.response(res, 400, true, 'Failed to update');
 
+      const normalizedPaths = normalizeProductPaths(path, paths);
+      if (normalizedPaths.length) {
+        await Product.replaceMediaPaths({ product_id: id, paths: normalizedPaths });
+      }
+
       const row = await Product.detail(id);
+      const media = row ? await Product.getMedia({ product_id: row.id }) : [];
 
       return misc.response(res, 200, false, 'Updated', {
-        item: row ? toProductResponse(row) : null,
+        item: row
+          ? {
+              id: row.id,
+              title: row.title,
+              media,
+              path: media?.[0]?.path || null,
+              content: row.content,
+              price: row.price,
+              stock: row.stock,
+              weight: row.weight,
+              created_at: row.created_at,
+              updated_at: row.updated_at,
+              store: row.shop_id
+                ? {
+                    id: row.shop_id,
+                    name: row.shop_name,
+                    is_active: row.shop_active,
+                  }
+                : null,
+            }
+          : null,
       });
     } catch (e) {
       console.log(e);

@@ -113,6 +113,42 @@ module.exports = {
     });
   },
 
+
+  replaceMediaPaths: ({ product_id, paths = [] }) => {
+    return new Promise((resolve, reject) => {
+      conn.beginTransaction((txErr) => {
+        if (txErr) return reject(new Error(txErr));
+
+        conn.query(`DELETE FROM product_images WHERE product_id = ?`, [product_id], (delErr) => {
+          if (delErr) {
+            return conn.rollback(() => reject(new Error(delErr)));
+          }
+
+          const clean = Array.isArray(paths)
+            ? paths.map((p) => String(p || '').trim()).filter(Boolean)
+            : [];
+
+          if (!clean.length) {
+            return conn.commit((cErr) => (cErr ? reject(new Error(cErr)) : resolve(true)));
+          }
+
+          const values = clean.map((path) => [product_id, path]);
+          const query = `INSERT INTO product_images (product_id, path) VALUES ?`;
+
+          conn.query(query, [values], (insErr) => {
+            if (insErr) {
+              return conn.rollback(() => reject(new Error(insErr)));
+            }
+
+            conn.commit((cErr) => {
+              if (cErr) return conn.rollback(() => reject(new Error(cErr)));
+              resolve(true);
+            });
+          });
+        });
+      });
+    });
+  },
   // CREATE
   create: (payload) => {
     return new Promise((resolve, reject) => {
