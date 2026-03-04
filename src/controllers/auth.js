@@ -118,7 +118,6 @@ module.exports = {
     try {
       if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
 
-
       if (!utils.validateEmail(email))
         throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
 
@@ -226,6 +225,27 @@ module.exports = {
     }
   },
 
+
+  resendForgotOtp: async (req, res) => {
+    const { email } = req.body;
+    const otp = generateOTP();
+
+    try {
+      if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
+      if (!utils.validateEmail(email))
+        throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
+
+      const activeUser = await Auth.checkActiveEmail(email);
+      if (activeUser.length == 0) throw new Error('Pengguna tidak ditemukan');
+
+      await Promise.all([Auth.resendOtp(email, otp), utils.sendEmail(email, otp)]);
+
+      misc.response(res, 200, false, `Berhasil mengirim ulang OTP reset password ke ${email}`, {});
+    } catch (e) {
+      console.log(e);
+      misc.response(res, 400, true, e.message);
+    }
+  },
   verifyForgotOtp: async (req, res) => {
     const { email, otp } = req.body;
 
@@ -267,7 +287,7 @@ module.exports = {
       const currentDate = new Date();
       const otpCreated = rows[0].created_at;
       const diff = new Date(currentDate.getTime() - otpCreated.getTime());
-      if (diff.getMinutes() > 2) {
+      if (diff.getMinutes() > 10) {
         return misc.response(res, 400, true, 'OTP kadaluwarsa');
       }
 
@@ -311,5 +331,4 @@ module.exports = {
       misc.response(res, 400, true, e.message);
     }
   },
-
 };
