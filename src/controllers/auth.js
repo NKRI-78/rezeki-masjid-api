@@ -225,7 +225,6 @@ module.exports = {
     }
   },
 
-
   resendForgotOtp: async (req, res) => {
     const { email } = req.body;
     const otp = generateOTP();
@@ -257,13 +256,6 @@ module.exports = {
       const rows = await Auth.verifyForgotOtp(email, otp);
       if (rows.length == 0) throw new Error('OTP salah');
 
-      const currentDate = new Date();
-      const otpCreated = rows[0].created_at;
-      const diff = new Date(currentDate.getTime() - otpCreated.getTime());
-      if (diff.getMinutes() > 2) {
-        return misc.response(res, 400, true, 'OTP kadaluwarsa');
-      }
-
       misc.response(res, 200, false, 'OTP valid', {});
     } catch (e) {
       console.log(e);
@@ -283,13 +275,6 @@ module.exports = {
 
       const rows = await Auth.verifyForgotOtp(email, otp);
       if (rows.length == 0) throw new Error('OTP salah');
-
-      const currentDate = new Date();
-      const otpCreated = rows[0].created_at;
-      const diff = new Date(currentDate.getTime() - otpCreated.getTime());
-      if (diff.getMinutes() > 10) {
-        return misc.response(res, 400, true, 'OTP kadaluwarsa');
-      }
 
       const passwordHash = await utils.encryptPassword(password);
       await Auth.updatePasswordByEmail(email, passwordHash);
