@@ -135,7 +135,7 @@ module.exports = {
         var currentDate = new Date();
         var otpCreated = checkOtpIsValid[0].otp_created_at;
         var diff = new Date(currentDate.getTime() - otpCreated.getTime());
-        if (diff.getMinutes() > 1) {
+        if (diff.getMinutes() >= 1) {
           misc.response(res, 400, false, 'OTP kadaluwarsa');
         } else {
           await Auth.verifyOtp(email);
@@ -303,7 +303,7 @@ module.exports = {
       const currentDate = new Date();
       const otpCreated = rows[0].otp_created_at;
       const diff = new Date(currentDate.getTime() - otpCreated.getTime());
-      if (diff.getMinutes() > 2) {
+      if (diff.getMinutes() >= 1) {
         return misc.response(res, 400, true, 'OTP kadaluwarsa');
       }
 

@@ -244,7 +244,7 @@ module.exports = {
               <span style="color:#ffffff; font-size:22px; letter-spacing:4px; font-weight:700;">${otp}</span>
             </div>
             <p style="margin:10px 0 0; font-size:12px; color:#64748b;">
-              Kode ini berlaku selama <b>2 menit</b>.
+              Kode ini berlaku selama <b>1 menit</b>.
             </p>
           </div>
 
