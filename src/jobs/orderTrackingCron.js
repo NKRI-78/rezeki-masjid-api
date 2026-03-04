@@ -5,14 +5,21 @@ function isDeliveredTracking(data) {
   if (!data) return false;
 
   const podStatus = String(data?.cnote?.pod_status || '').toUpperCase();
-  if (podStatus === 'DELIVERED') return true;
+  if (podStatus === 'DELIVERED' || 'ON PROCESS') return true;
 
   const lastStatus = String(data?.cnote?.last_status || '').toUpperCase();
-  if (lastStatus.includes('DELIVERED')) return true;
+  if (lastStatus.includes('DELIVERED') || lastStatus.includes('ON PROCESS')) return true;
 
   const history = Array.isArray(data?.history) ? data.history : [];
   if (history.some((h) => String(h?.code || '').toUpperCase() === 'D01')) return true;
-  if (history.some((h) => String(h?.desc || '').toUpperCase().includes('DELIVERED'))) return true;
+  if (
+    history.some((h) =>
+      String(h?.desc || '')
+        .toUpperCase()
+        .includes('DELIVERED'),
+    )
+  )
+    return true;
 
   return false;
 }
@@ -82,7 +89,9 @@ function startOrderTrackingCron() {
   const intervalMs = Number(process.env.TRACKING_CRON_INTERVAL_MS || 30 * 60 * 1000);
 
   setTimeout(() => {
-    runOrderTrackingCron().catch((e) => console.log('[CRON][tracking] first run error:', e?.message));
+    runOrderTrackingCron().catch((e) =>
+      console.log('[CRON][tracking] first run error:', e?.message),
+    );
   }, 15000);
 
   setInterval(() => {
