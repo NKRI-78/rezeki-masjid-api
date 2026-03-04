@@ -209,7 +209,7 @@ module.exports = {
       if (invoiceData.length != 0) counterNumber = parseInt(invoiceData[0].no) + 1;
 
       const random = Math.floor(1000 + Math.random() * 9000);
-      var invoiceValue = `RZKMSJD${invoiceDate}00${counterNumber}${random}`;
+      var invoiceValue = `BM${invoiceDate}00${counterNumber}${random}`;
 
       var order = await Order.create({
         invoice: invoiceValue,
@@ -416,7 +416,9 @@ module.exports = {
       // hilangkan layanan same-day, lalu normalisasi label + unit estimasi
       prices = prices
         .filter((r) => {
-          const timesRaw = String(r.times || '').trim().toUpperCase();
+          const timesRaw = String(r.times || '')
+            .trim()
+            .toUpperCase();
           const display = String(r.service_display || '').toUpperCase();
           const code = String(r.service_code || '').toUpperCase();
           const label = String(r.service_label || '').toUpperCase();
@@ -431,7 +433,9 @@ module.exports = {
           return !isSameDay;
         })
         .map((r) => {
-          const timesRaw = String(r.times || '').trim().toUpperCase();
+          const timesRaw = String(r.times || '')
+            .trim()
+            .toUpperCase();
           const etdUnit = timesRaw === 'H' ? 'jam' : 'hari';
 
           let etdText = `${r.etd_from}-${r.etd_thru} ${etdUnit}`;
@@ -592,7 +596,8 @@ module.exports = {
             throw new Error('No Resi belum ada');
           }
 
-          const useDummyTracking = tracking_dummy === true || String(tracking_dummy || '').toLowerCase() === 'true';
+          const useDummyTracking =
+            tracking_dummy === true || String(tracking_dummy || '').toLowerCase() === 'true';
 
           if (useDummyTracking) {
             const now = new Date();
@@ -685,7 +690,10 @@ module.exports = {
             throw new Error('TRACKING_JNE belum diset di env');
           }
 
-          const trackingUrl = trackingUrlTemplate.replace('{AWB}', encodeURIComponent(order.waybill));
+          const trackingUrl = trackingUrlTemplate.replace(
+            '{AWB}',
+            encodeURIComponent(order.waybill),
+          );
 
           const body = new URLSearchParams({
             username: process.env.USERNAME_JNE,
