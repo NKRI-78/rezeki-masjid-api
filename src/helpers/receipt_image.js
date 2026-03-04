@@ -37,13 +37,27 @@ async function generateReceiptPng(p) {
   ctx.font = 'bold 34px Arial';
   ctx.fillText('RESI / STRUK PENGIRIMAN', 40, 80);
 
-  ctx.font = '20px Arial';
-  ctx.fillText(`Tanggal: ${safeText(p.dateText)}`, 40, 120);
-  ctx.fillText(`Invoice: ${safeText(p.invoice)}`, 40, 150);
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText('Bantu Masjid App', 40, 108);
 
+  ctx.font = '20px Arial';
+  ctx.fillText(`Tanggal: ${safeText(p.dateText)}`, 40, 140);
+  ctx.fillText(`Invoice: ${safeText(p.invoice)}`, 40, 170);
+
+
+  // logo JNE (vector/text sederhana)
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(W - 210, 40, 150, 60);
+  ctx.font = 'bold 34px Arial';
+  ctx.fillStyle = '#E11D2E';
+  ctx.fillText('JNE', W - 180, 83);
+  ctx.fillStyle = '#000';
+  ctx.font = '12px Arial';
+  ctx.fillText('Express Across Nations', W - 194, 98);
   // waybill big
   ctx.font = 'bold 40px Arial';
-  ctx.fillText(`WAYBILL: ${safeText(p.waybill)}`, 40, 210);
+  ctx.fillText(`WAYBILL: ${safeText(p.waybill)}`, 40, 235);
 
   // barcode
   let barcodePng;
@@ -63,10 +77,10 @@ async function generateReceiptPng(p) {
   if (barcodePng) {
     const img = new (require('canvas').Image)();
     img.src = barcodePng;
-    ctx.drawImage(img, 40, 240, 520, 110);
+    ctx.drawImage(img, 40, 265, 520, 110);
   } else {
     ctx.font = '16px Arial';
-    ctx.fillText('(barcode gagal dibuat)', 40, 270);
+    ctx.fillText('(barcode gagal dibuat)', 40, 295);
   }
 
   // QR code (misal tracking url atau waybill)
@@ -74,19 +88,19 @@ async function generateReceiptPng(p) {
   const qrDataUrl = await QRCode.toDataURL(qrText, { margin: 1, scale: 6 });
   const qrImg = new (require('canvas').Image)();
   qrImg.src = qrDataUrl;
-  ctx.drawImage(qrImg, 620, 230, 160, 160);
+  ctx.drawImage(qrImg, 620, 255, 160, 160);
 
   // line separator
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(40, 420);
-  ctx.lineTo(W - 40, 420);
+  ctx.moveTo(40, 445);
+  ctx.lineTo(W - 40, 445);
   ctx.stroke();
 
   // sender & receiver blocks
   ctx.font = 'bold 24px Arial';
-  ctx.fillText('PENGIRIM (SHOP)', 40, 470);
-  ctx.fillText('PENERIMA (MASJID)', 40, 690);
+  ctx.fillText('PENGIRIM (SHOP)', 40, 495);
+  ctx.fillText('PENERIMA (MASJID)', 40, 715);
 
   ctx.font = '20px Arial';
   // sender text
@@ -131,18 +145,18 @@ async function generateReceiptPng(p) {
     return cy;
   }
 
-  drawMultiline(senderLines, 40, 510, W - 80);
-  drawMultiline(receiverLines, 40, 730, W - 80);
+  drawMultiline(senderLines, 40, 535, W - 80);
+  drawMultiline(receiverLines, 40, 755, W - 80);
 
   // separator
   ctx.beginPath();
-  ctx.moveTo(40, 920);
-  ctx.lineTo(W - 40, 920);
+  ctx.moveTo(40, 945);
+  ctx.lineTo(W - 40, 945);
   ctx.stroke();
 
   // shipment details
   ctx.font = 'bold 24px Arial';
-  ctx.fillText('DETAIL PENGIRIMAN', 40, 970);
+  ctx.fillText('DETAIL PENGIRIMAN', 40, 995);
 
   ctx.font = '20px Arial';
   const details = [
@@ -150,9 +164,8 @@ async function generateReceiptPng(p) {
     `Service: ${safeText(p.serviceCode)}`,
     `Qty: ${safeText(p.qty)} pcs`,
     `Berat: ${safeText(p.weight)} kg`,
-    `Nilai Barang: Rp ${rupiah(p.goodsValue)}`,
   ];
-  drawMultiline(details, 40, 1010, W - 80);
+  drawMultiline(details, 40, 1035, W - 80);
 
   // footer note
   ctx.font = '16px Arial';
