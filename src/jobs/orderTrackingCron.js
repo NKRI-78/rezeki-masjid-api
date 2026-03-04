@@ -5,10 +5,10 @@ function isDeliveredTracking(data) {
   if (!data) return false;
 
   const podStatus = String(data?.cnote?.pod_status || '').toUpperCase();
-  if (podStatus === 'DELIVERED' || 'ON PROCESS') return true;
+  if (podStatus === 'DELIVERED') return true;
 
   const lastStatus = String(data?.cnote?.last_status || '').toUpperCase();
-  if (lastStatus.includes('DELIVERED') || lastStatus.includes('ON PROCESS')) return true;
+  if (lastStatus.includes('DELIVERED')) return true;
 
   const history = Array.isArray(data?.history) ? data.history : [];
   if (history.some((h) => String(h?.code || '').toUpperCase() === 'D01')) return true;
@@ -66,6 +66,10 @@ async function runOrderTrackingCron() {
   for (const row of rows) {
     try {
       const tracking = await fetchTrackingByAwb(row.waybill);
+      const podStatus = String(tracking?.cnote?.pod_status || '').toUpperCase();
+      if (podStatus == 'ON PROCESS') {
+        await Order.markDelivery(row.invoice);
+      }
       if (isDeliveredTracking(tracking)) {
         await Order.markDelivered(row.invoice);
         deliveredCount += 1;

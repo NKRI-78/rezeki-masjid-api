@@ -282,6 +282,7 @@ module.exports = {
       // if (diffMs >= 60 * 1000) {
       //   return misc.response(res, 400, true, 'OTP kadaluwarsa');
       // }
+      
 
       const passwordHash = await utils.encryptPassword(password);
       await Auth.updatePasswordByEmail(email, passwordHash);

@@ -175,7 +175,6 @@ module.exports = {
     });
   },
 
-
   listTrackableForDelivery: () => {
     return new Promise((resolve, reject) => {
       const query = `
@@ -199,6 +198,21 @@ module.exports = {
       const query = `
         UPDATE orders
         SET status = 'DELIVERED', finished_at = NOW(), updated_at = NOW()
+        WHERE invoice = ?
+      `;
+
+      conn.query(query, [invoice], (e, result) => {
+        if (e) reject(new Error(e));
+        else resolve(result);
+      });
+    });
+  },
+
+  markDelivery: (invoice) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        UPDATE orders
+        SET status = 'DELIVERY', updated_at = NOW()
         WHERE invoice = ?
       `;
 
