@@ -1,4 +1,4 @@
-const { createCanvas } = require('canvas');
+const { createCanvas, loadImage } = require('canvas');
 const QRCode = require('qrcode');
 const bwipjs = require('bwip-js');
 
@@ -45,16 +45,25 @@ async function generateReceiptPng(p) {
   ctx.fillText(`Invoice: ${safeText(p.invoice)}`, 40, 170);
 
 
-  // logo JNE (vector/text sederhana)
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(W - 210, 40, 150, 60);
-  ctx.font = 'bold 34px Arial';
-  ctx.fillStyle = '#E11D2E';
-  ctx.fillText('JNE', W - 180, 83);
-  ctx.fillStyle = '#000';
-  ctx.font = '12px Arial';
-  ctx.fillText('Express Across Nations', W - 194, 98);
+  // logo JNE (pakai image URL, fallback ke text badge jika gagal)
+  const jneLogoUrl =
+    process.env.JNE_LOGO_URL ||
+    'https://jnewsonline.com/wp-content/uploads/2021/11/Foto-2-Naskah-Mengenal-Sosok-Kreator-Logo-%E2%80%98Biru-Tua-Merah-JNE.jpg';
+
+  try {
+    const jneLogo = await loadImage(jneLogoUrl);
+    ctx.drawImage(jneLogo, W - 220, 34, 170, 72);
+  } catch (_) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(W - 210, 40, 150, 60);
+    ctx.font = 'bold 34px Arial';
+    ctx.fillStyle = '#E11D2E';
+    ctx.fillText('JNE', W - 180, 83);
+    ctx.fillStyle = '#000';
+    ctx.font = '12px Arial';
+    ctx.fillText('Express Across Nations', W - 194, 98);
+  }
   // waybill big
   ctx.font = 'bold 40px Arial';
   ctx.fillText(`WAYBILL: ${safeText(p.waybill)}`, 40, 235);
