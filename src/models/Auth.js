@@ -7,8 +7,8 @@ module.exports = {
             FROM users u
             INNER JOIN profiles p ON u.id = p.user_id
             INNER JOIN roles r ON r.id = u.role
-            WHERE u.email = '${val}' OR u.phone = '${val}'`;
-      conn.query(query, (e, result) => {
+            WHERE u.email = ? OR u.phone = ?`;
+      conn.query(query, [val, val], (e, result) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -23,8 +23,8 @@ module.exports = {
       const query = `UPDATE users
             SET is_active = 'enabled', 
             updated_at = NOW()
-            WHERE email = '${email}'`;
-      conn.query(query, (e, res) => {
+            WHERE email = ?`;
+      conn.query(query, [email], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -37,9 +37,9 @@ module.exports = {
   register: (otp, phone, email, role, password) => {
     return new Promise((resolve, reject) => {
       var query = `INSERT INTO users (otp, phone, email, role, password) 
-            VALUES ('${otp}', '${phone}', '${email}', '${role}', '${password}') 
+            VALUES (?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE created_at = NOW()`;
-      conn.query(query, (e, result) => {
+      conn.query(query, [otp, phone, email, role, password], (e, result) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -51,8 +51,8 @@ module.exports = {
 
   checkEmail: (email) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT email, password FROM users WHERE email = '${email}'`;
-      conn.query(query, (e, res) => {
+      const query = `SELECT email, password FROM users WHERE email = ?`;
+      conn.query(query, [email], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -64,8 +64,8 @@ module.exports = {
 
   isEmailAlreadyActive: (email) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT email FROM users WHERE email = '${email}' AND is_active = 'enabled'`;
-      conn.query(query, (e, res) => {
+      const query = `SELECT email FROM users WHERE email = ? AND is_active = 'enabled'`;
+      conn.query(query, [email], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -77,8 +77,8 @@ module.exports = {
 
   checkPhone: (phone) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT phone FROM users WHERE phone = '${phone}'`;
-      conn.query(query, (e, res) => {
+      const query = `SELECT phone FROM users WHERE phone = ?`;
+      conn.query(query, [phone], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -90,9 +90,9 @@ module.exports = {
 
   insertOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
-      const query = `INSERT users (email, otp) VALUES ('${email}', '${otp}') 
-            ON DUPLICATE KEY UPDATE email = '${email}', otp = '${otp}', created_at = NOW()`;
-      conn.query(query, (e, res) => {
+      const query = `INSERT INTO users (email, otp) VALUES (?, ?) 
+            ON DUPLICATE KEY UPDATE email = VALUES(email), otp = VALUES(otp), created_at = NOW()`;
+      conn.query(query, [email, otp], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -109,10 +109,10 @@ module.exports = {
                 INNER JOIN profiles p
                 ON u.id = p.user_id
                 INNER JOIN roles r ON r.id = u.role
-                WHERE u.email = '${email}' 
-                AND u.otp = '${otp}' 
+                WHERE u.email = ? 
+                AND u.otp = ? 
                 AND u.is_active = 'disabled'`;
-      conn.query(query, (e, res) => {
+      conn.query(query, [email, otp], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -125,9 +125,9 @@ module.exports = {
   updateOtp: (otp, email) => {
     return new Promise((resolve, reject) => {
       const query = `UPDATE users 
-            SET otp = '${otp}', created_at = NOW(), updated_at = NOW()
-            WHERE email = '${email}'`;
-      conn.query(query, (e, res) => {
+            SET otp = ?, created_at = NOW(), updated_at = NOW()
+            WHERE email = ?`;
+      conn.query(query, [otp, email], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {
@@ -137,11 +137,10 @@ module.exports = {
     });
   },
 
-
   checkActiveEmail: (email) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT id, email, is_active FROM users WHERE email = '${email}' AND is_active = 'enabled' LIMIT 1`;
-      conn.query(query, (e, res) => {
+      const query = `SELECT id, email, is_active FROM users WHERE email = ? AND is_active = 'enabled' LIMIT 1`;
+      conn.query(query, [email], (e, res) => {
         if (e) reject(new Error(e));
         else resolve(res || []);
       });
@@ -150,8 +149,8 @@ module.exports = {
 
   verifyForgotOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT id, email, otp, COALESCE(updated_at, created_at) AS otp_created_at FROM users WHERE email = '${email}' AND otp = '${otp}' AND is_active = 'enabled' LIMIT 1`;
-      conn.query(query, (e, res) => {
+      const query = `SELECT id, email, otp, COALESCE(updated_at, created_at) AS otp_created_at FROM users WHERE email = ? AND otp = ? AND is_active = 'enabled' LIMIT 1`;
+      conn.query(query, [email, otp], (e, res) => {
         if (e) reject(new Error(e));
         else resolve(res || []);
       });
@@ -160,19 +159,20 @@ module.exports = {
 
   updatePasswordByEmail: (email, passwordHash) => {
     return new Promise((resolve, reject) => {
-      const query = `UPDATE users SET password = '${passwordHash}', otp = NULL, updated_at = NOW() WHERE email = '${email}'`;
-      conn.query(query, (e, res) => {
+      const query = `UPDATE users SET password = ?, otp = NULL, updated_at = NOW() WHERE email = ?`;
+      conn.query(query, [passwordHash, email], (e, res) => {
         if (e) reject(new Error(e));
         else resolve(res);
       });
     });
   },
+
   resendOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
       const query = `UPDATE users
-            SET otp = '${otp}', created_at = NOW()
-            WHERE email = '${email}'`;
-      conn.query(query, (e, res) => {
+            SET otp = ?, created_at = NOW(), updated_at = NOW()
+            WHERE email = ?`;
+      conn.query(query, [otp, email], (e, res) => {
         if (e) {
           reject(new Error(e));
         } else {

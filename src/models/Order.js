@@ -128,7 +128,7 @@ module.exports = {
 
   invoice: (invoiceValue) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT * FROM orders WHERE date_value = '${invoiceValue}' ORDER BY no DESC LIMIT 1`;
+      const query = `SELECT * FROM orders WHERE date_value = ? ORDER BY no DESC LIMIT 1`;
 
       conn.query(query, [invoiceValue], (e, result) => {
         if (e) reject(new Error(e));
