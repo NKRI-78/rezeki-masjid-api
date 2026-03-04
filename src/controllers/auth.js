@@ -276,12 +276,12 @@ module.exports = {
       const rows = await Auth.verifyForgotOtp(email, otp);
       if (rows.length == 0) throw new Error('OTP salah');
 
-      const currentDate = new Date();
-      const otpCreated = new Date(rows[0].otp_created_at);
-      const diffMs = currentDate.getTime() - otpCreated.getTime();
-      if (diffMs >= 60 * 1000) {
-        return misc.response(res, 400, true, 'OTP kadaluwarsa');
-      }
+      // const currentDate = new Date();
+      // const otpCreated = new Date(rows[0].otp_created_at);
+      // const diffMs = currentDate.getTime() - otpCreated.getTime();
+      // if (diffMs >= 60 * 1000) {
+      //   return misc.response(res, 400, true, 'OTP kadaluwarsa');
+      // }
 
       const passwordHash = await utils.encryptPassword(password);
       await Auth.updatePasswordByEmail(email, passwordHash);
@@ -292,6 +292,4 @@ module.exports = {
       misc.response(res, 400, true, e.message);
     }
   },
-
-
 };
