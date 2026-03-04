@@ -276,30 +276,6 @@ module.exports = {
       const rows = await Auth.verifyForgotOtp(email, otp);
       if (rows.length == 0) throw new Error('OTP salah');
 
-      const passwordHash = await utils.encryptPassword(password);
-      await Auth.updatePasswordByEmail(email, passwordHash);
-
-      misc.response(res, 200, false, 'Password berhasil diperbarui', {});
-    } catch (e) {
-      console.log(e);
-      misc.response(res, 400, true, e.message);
-    }
-  },
-
-  // backward compatibility
-  resetPassword: async (req, res) => {
-    const { email, otp, password } = req.body;
-
-    try {
-      if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
-      if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
-      if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
-      if (!utils.validateEmail(email))
-        throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
-
-      const rows = await Auth.verifyForgotOtp(email, otp);
-      if (rows.length == 0) throw new Error('OTP salah');
-
       const currentDate = new Date();
       const otpCreated = new Date(rows[0].otp_created_at);
       const diffMs = currentDate.getTime() - otpCreated.getTime();
@@ -316,4 +292,6 @@ module.exports = {
       misc.response(res, 400, true, e.message);
     }
   },
+
+
 };
