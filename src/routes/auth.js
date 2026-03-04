@@ -9,7 +9,6 @@ Route.post('/login', auth.login)
   .post('/forgot-password', auth.forgotPassword)
   .post('/resend-forgot-otp', auth.resendForgotOtp)
   .post('/verify-forgot-otp', auth.verifyForgotOtp)
-  .post('/change-password', auth.changePassword)
-  .post('/reset-password', auth.resetPassword);
+  .post('/change-password', auth.changePassword);
 
 module.exports = Route;
