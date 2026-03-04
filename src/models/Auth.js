@@ -104,7 +104,7 @@ module.exports = {
 
   checkOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT u.id, u.otp, u.email, u.phone, p.fullname, r.name AS role, u.created_at
+      const query = `SELECT u.id, u.otp, u.email, u.phone, p.fullname, r.name AS role, COALESCE(u.updated_at, u.created_at) AS otp_created_at
                 FROM users u
                 INNER JOIN profiles p
                 ON u.id = p.user_id
@@ -150,7 +150,7 @@ module.exports = {
 
   verifyForgotOtp: (email, otp) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT id, email, otp, created_at FROM users WHERE email = '${email}' AND otp = '${otp}' AND is_active = 'enabled' LIMIT 1`;
+      const query = `SELECT id, email, otp, COALESCE(updated_at, created_at) AS otp_created_at FROM users WHERE email = '${email}' AND otp = '${otp}' AND is_active = 'enabled' LIMIT 1`;
       conn.query(query, (e, res) => {
         if (e) reject(new Error(e));
         else resolve(res || []);

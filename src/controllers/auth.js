@@ -133,7 +133,7 @@ module.exports = {
         if (checkOtpIsValid.length == 0) throw new Error('OTP salah');
 
         var currentDate = new Date();
-        var otpCreated = checkOtpIsValid[0].created_at;
+        var otpCreated = checkOtpIsValid[0].otp_created_at;
         var diff = new Date(currentDate.getTime() - otpCreated.getTime());
         if (diff.getMinutes() > 1) {
           misc.response(res, 400, false, 'OTP kadaluwarsa');
@@ -301,7 +301,7 @@ module.exports = {
       if (rows.length == 0) throw new Error('OTP salah');
 
       const currentDate = new Date();
-      const otpCreated = rows[0].created_at;
+      const otpCreated = rows[0].otp_created_at;
       const diff = new Date(currentDate.getTime() - otpCreated.getTime());
       if (diff.getMinutes() > 2) {
         return misc.response(res, 400, true, 'OTP kadaluwarsa');
