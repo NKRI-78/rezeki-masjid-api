@@ -133,9 +133,9 @@ module.exports = {
         if (checkOtpIsValid.length == 0) throw new Error('OTP salah');
 
         var currentDate = new Date();
-        var otpCreated = checkOtpIsValid[0].otp_created_at;
-        var diff = new Date(currentDate.getTime() - otpCreated.getTime());
-        if (diff.getMinutes() >= 1) {
+        var otpCreated = new Date(checkOtpIsValid[0].otp_created_at);
+        var diffMs = currentDate.getTime() - otpCreated.getTime();
+        if (diffMs >= 60 * 1000) {
           misc.response(res, 400, false, 'OTP kadaluwarsa');
         } else {
           await Auth.verifyOtp(email);
@@ -301,9 +301,9 @@ module.exports = {
       if (rows.length == 0) throw new Error('OTP salah');
 
       const currentDate = new Date();
-      const otpCreated = rows[0].otp_created_at;
-      const diff = new Date(currentDate.getTime() - otpCreated.getTime());
-      if (diff.getMinutes() >= 1) {
+      const otpCreated = new Date(rows[0].otp_created_at);
+      const diffMs = currentDate.getTime() - otpCreated.getTime();
+      if (diffMs >= 60 * 1000) {
         return misc.response(res, 400, true, 'OTP kadaluwarsa');
       }
 
