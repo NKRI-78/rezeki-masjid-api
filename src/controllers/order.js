@@ -335,10 +335,12 @@ module.exports = {
         weight += Number(product.weight) * Number(item.qty);
       }
 
-      const selectMosqueDistrict = await Order.selectMosqueDistrict(mosque_id);
-      if (selectMosqueDistrict.length === 0) throw new Error('Alamat masjid belum lengkap');
+      const selectMosqueSubdistrict = await Order.selectMosqueSubdistrict(mosque_id);
+      if (selectMosqueSubdistrict.length === 0) throw new Error('Alamat masjid belum lengkap');
 
-      const destinationTariffCode = await Order.getTariffCode(selectMosqueDistrict[0].district);
+      const destinationTariffCode = await Order.getTariffCode(
+        selectMosqueSubdistrict[0].subdistrict,
+      );
 
       const weightKg = gramsToKg(weight); // pastikan return number (kg)
 

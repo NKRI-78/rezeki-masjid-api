@@ -98,8 +98,8 @@ module.exports = {
     });
   },
 
-  selectMosqueDistrict: (mosque_id) => {
-    const query = `SELECT district FROM mosques WHERE id = ?`;
+  selectMosqueSubdistrict: (mosque_id) => {
+    const query = `SELECT subdistrict FROM mosques WHERE id = ?`;
 
     return new Promise((resolve, reject) => {
       conn.query(query, [mosque_id], (e, result) => {
@@ -114,8 +114,6 @@ module.exports = {
 
   getTariffCode: (subdistrict) => {
     var query = `SELECT tariff_code FROM jne_destinations WHERE subdistrict_name = ?`;
-
-    console.log(query, subdistrict);
 
     return new Promise((resolve, reject) => {
       conn.query(query, [subdistrict], (e, result) => {
