@@ -182,7 +182,7 @@ module.exports = {
         FROM orders
         WHERE waybill IS NOT NULL
           AND waybill <> ''
-          AND status IN ('PROCESS')
+          AND status IN ('PROCESS', 'DELIVERY')
         ORDER BY id DESC
       `;
 
@@ -197,7 +197,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const query = `
         UPDATE orders
-        SET status = 'DELIVERED', finished_at = NOW(), updated_at = NOW()
+        SET status = 'FINISHED', finished_at = NOW(), updated_at = NOW()
         WHERE invoice = ?
       `;
 
