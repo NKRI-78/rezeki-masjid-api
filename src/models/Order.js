@@ -113,13 +113,16 @@ module.exports = {
   },
 
   getTariffCode: (subdistrict) => {
-    var query = `SELECT tariff_code FROM jne_destinations WHERE district_name = ?`;
+    var query = `SELECT tariff_code FROM jne_destinations WHERE subdistrict_name = ?`;
 
     return new Promise((resolve, reject) => {
       conn.query(query, [subdistrict], (e, result) => {
         if (e) {
           reject(new Error(e));
         } else {
+          if (result == 0) {
+            reject(new Error('Kecamatan tidak ditemukan'));
+          }
           resolve(result[0].tariff_code);
         }
       });

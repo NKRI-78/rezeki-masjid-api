@@ -42,7 +42,6 @@ const logger = createLogger({
   rejectionHandlers: [new transports.File({ filename: path.join(LOG_DIR, 'rejections.log') })],
 });
 
-// Stream untuk Morgan
 logger.stream = {
   write: (msg) => logger.info(msg.trim()),
 };
