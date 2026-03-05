@@ -124,6 +124,7 @@ module.exports = {
         name: row.name,
         description: row.description,
         phone: row.phone,
+        link: row.link,
         path: medias?.[0]?.path || row.path,
         media: (medias || []).map((m) => ({ id: m.id, path: m.path })),
         detail_address: row.detail_address,
@@ -166,6 +167,7 @@ module.exports = {
         zip_code,
         lat,
         lng,
+        link,
       } = req.body;
 
       if (!name) return misc.response(res, 400, true, 'nama wajib diisi');
@@ -197,6 +199,7 @@ module.exports = {
         zip_code,
         lat,
         lng,
+        link,
       });
 
       await Mosque.replaceMediaPaths(created.id, normalizedPaths);
@@ -237,6 +240,7 @@ module.exports = {
         zip_code,
         lat,
         lng,
+        link,
       } = req.body;
 
       const exists = await Mosque.detail(id);
@@ -258,6 +262,7 @@ module.exports = {
         zip_code,
         lat,
         lng,
+        link,
       });
 
       if (!updated?.affectedRows) return misc.response(res, 400, true, 'Failed to update');

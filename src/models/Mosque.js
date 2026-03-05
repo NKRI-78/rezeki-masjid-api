@@ -234,12 +234,13 @@ module.exports = {
         zip_code,
         lat,
         lng,
+        link,
       } = payload;
 
       const query = `
       INSERT INTO mosques 
-      (name, description, phone, path, detail_address, province, city, district, subdistrict, zip_code, lat, lng, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      (name, description, phone, path, detail_address, province, city, district, subdistrict, zip_code, lat, lng, link, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     `;
 
       conn.query(
@@ -257,6 +258,7 @@ module.exports = {
           zip_code,
           lat,
           lng,
+          link,
         ],
         (e, result) => {
           if (e) return reject(e);
@@ -281,6 +283,7 @@ module.exports = {
         zip_code,
         lat,
         lng,
+        link,
       } = payload;
 
       const query = `
@@ -298,6 +301,7 @@ module.exports = {
         zip_code = ?,
         lat = ?,
         lng = ?,
+        link = ?,
         updated_at = NOW()
       WHERE id = ?
     `;
@@ -317,6 +321,7 @@ module.exports = {
           zip_code,
           lat,
           lng,
+          link,
           id,
         ],
         (e, result) => {

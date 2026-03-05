@@ -58,6 +58,7 @@ module.exports = {
       zip_code: row.zip_code,
       lat: row.lat,
       lng: row.lng,
+      link: row.link,
       is_active: row.is_active,
       user: {
         id: row.user_id,
@@ -126,6 +127,7 @@ module.exports = {
       zip_code: row.zip_code,
       lat: row.lat,
       lng: row.lng,
+      link: row.link,
       distance_km: formatDistanceKm(row.distance_km),
       created_at: row.created_at,
       updated_at: row.updated_at,
