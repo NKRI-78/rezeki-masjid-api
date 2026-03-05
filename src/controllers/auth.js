@@ -153,7 +153,7 @@ module.exports = {
             token: token,
             refresh_token: refreshToken,
             user: {
-              id: checkOtpIsValid[0].uid,
+              id: checkOtpIsValid[0].id,
               name: checkOtpIsValid[0].fullname,
               email: checkOtpIsValid[0].email,
               is_active: 'enabled',
