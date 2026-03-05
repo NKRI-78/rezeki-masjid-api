@@ -115,6 +115,8 @@ module.exports = {
   getTariffCode: (subdistrict) => {
     var query = `SELECT tariff_code FROM jne_destinations WHERE subdistrict_name = ?`;
 
+    console.log(query, subdistrict);
+
     return new Promise((resolve, reject) => {
       conn.query(query, [subdistrict], (e, result) => {
         if (e) {
