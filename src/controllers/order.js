@@ -553,6 +553,124 @@ module.exports = {
         receipt = `${process.env.BASE_URL}/api/v1/order/${invoice}/receipt.png`;
 
         await Order.orderUpdateWaybill(waybill, receipt, invoice);
+      const fetchTrackingData = async () => {
+        if (order.waybill_created_at == null || !order.waybill) {
+          throw new Error('No Resi belum ada');
+        }
+
+        const useDummyTracking =
+          tracking_dummy === true || String(tracking_dummy || '').toLowerCase() === 'true';
+
+        if (useDummyTracking) {
+          const now = new Date();
+          const fmt = (d) => {
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yyyy = d.getFullYear();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mi = String(d.getMinutes()).padStart(2, '0');
+            return `${dd}-${mm}-${yyyy} ${hh}:${mi}`;
+          };
+
+          const h1 = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+          const h2 = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+          const h3 = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
+          return {
+            cnote: {
+              cnote_no: order.waybill,
+              reference_number: String(order.id || ''),
+              cnote_origin: 'CGK10000',
+              cnote_destination: 'CGK99999',
+              cnote_services_code: order.jne_service_code || 'REG',
+              servicetype: order.jne_service_code || 'REG',
+              cnote_cust_no: process.env.USERNAME_JNE || '',
+              cnote_date: h1.toISOString(),
+              cnote_pod_receiver: null,
+              cnote_receiver_name: 'PENERIMA',
+              city_name: 'JAKARTA',
+              cnote_pod_date: null,
+              pod_status: 'ON_PROCESS',
+              last_status: `WITH DELIVERY COURIER [${fmt(h3)}]`,
+              cust_type: '060',
+              cnote_amount: String(order.amount || 0),
+              cnote_weight: String(order.product_weight || 0),
+              pod_code: null,
+              keterangan: null,
+              cnote_goods_descr: '-',
+              freight_charge: String(order.amount || 0),
+              shippingcost: String(order.amount || 0),
+              insuranceamount: '0',
+              priceperkg: String(order.amount || 0),
+              signature: null,
+              photo: null,
+              long: null,
+              lat: null,
+              estimate_delivery: '1 Days',
+            },
+            detail: [
+              {
+                cnote_no: order.waybill,
+                cnote_date: h1.toISOString(),
+                cnote_weight: String(order.product_weight || 0),
+                cnote_origin: 'CGK10000',
+                cnote_shipper_name: 'TOKO REJEKI',
+                cnote_shipper_addr1: '-',
+                cnote_shipper_addr2: ' ',
+                cnote_shipper_addr3: null,
+                cnote_shipper_city: 'JAKARTA',
+                cnote_receiver_name: 'PENERIMA',
+                cnote_receiver_addr1: '-',
+                cnote_receiver_addr2: null,
+                cnote_receiver_addr3: null,
+                cnote_receiver_city: 'JAKARTA',
+              },
+            ],
+            history: [
+              {
+                date: fmt(h1),
+                desc: 'SHIPMENT RECEIVED BY JNE COUNTER OFFICER AT [JAKARTA]',
+                code: 'RC1',
+              },
+              {
+                date: fmt(h2),
+                desc: 'PICKED UP BY COURIER [JAKARTA]',
+                code: 'PU1',
+              },
+              {
+                date: fmt(h3),
+                desc: 'WITH DELIVERY COURIER [JAKARTA]',
+                code: 'IP3',
+              },
+            ],
+          };
+        }
+
+        const trackingUrlTemplate = process.env.TRACKING_JNE;
+        if (!trackingUrlTemplate) {
+          throw new Error('TRACKING_JNE belum diset di env');
+        }
+
+        const trackingUrl = trackingUrlTemplate.replace('{AWB}', encodeURIComponent(order.waybill));
+
+        const body = new URLSearchParams({
+          username: process.env.USERNAME_JNE,
+          api_key: process.env.KEY_API_JNE,
+        }).toString();
+
+        const trackingRes = await axios({
+          method: 'POST',
+          url: trackingUrl,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/json',
+          },
+          data: body,
+        });
+
+        return trackingRes?.data || null;
+      };
+
       };
 
       /**
@@ -568,7 +686,7 @@ module.exports = {
        */
 
       // Optional: cegah perubahan setelah finished
-      if (order.finished_at != null) {
+      if (order.finished_at != null && !['TRACKING', 'FINISHED'].includes(next)) {
         throw new Error('Order sudah FINISHED, status tidak bisa diubah lagi');
       }
 
@@ -592,138 +710,13 @@ module.exports = {
         // case 'WAYBILL' dihapus: waybill sekarang otomatis dibuat saat PROCESS.
 
         case 'TRACKING': {
-          if (order.waybill_created_at == null || !order.waybill) {
-            throw new Error('No Resi belum ada');
-          }
-
-          const useDummyTracking =
-            tracking_dummy === true || String(tracking_dummy || '').toLowerCase() === 'true';
-
-          if (useDummyTracking) {
-            const now = new Date();
-            const fmt = (d) => {
-              const dd = String(d.getDate()).padStart(2, '0');
-              const mm = String(d.getMonth() + 1).padStart(2, '0');
-              const yyyy = d.getFullYear();
-              const hh = String(d.getHours()).padStart(2, '0');
-              const mi = String(d.getMinutes()).padStart(2, '0');
-              return `${dd}-${mm}-${yyyy} ${hh}:${mi}`;
-            };
-
-            const h1 = new Date(now.getTime() - 6 * 60 * 60 * 1000);
-            const h2 = new Date(now.getTime() - 4 * 60 * 60 * 1000);
-            const h3 = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-
-            tracking = {
-              cnote: {
-                cnote_no: order.waybill,
-                reference_number: String(order.id || ''),
-                cnote_origin: 'CGK10000',
-                cnote_destination: 'CGK99999',
-                cnote_services_code: order.jne_service_code || 'REG',
-                servicetype: order.jne_service_code || 'REG',
-                cnote_cust_no: process.env.USERNAME_JNE || '',
-                cnote_date: h1.toISOString(),
-                cnote_pod_receiver: null,
-                cnote_receiver_name: 'PENERIMA',
-                city_name: 'JAKARTA',
-                cnote_pod_date: null,
-                pod_status: 'ON_PROCESS',
-                last_status: `WITH DELIVERY COURIER [${fmt(h3)}]`,
-                cust_type: '060',
-                cnote_amount: String(order.amount || 0),
-                cnote_weight: String(order.product_weight || 0),
-                pod_code: null,
-                keterangan: null,
-                cnote_goods_descr: '-',
-                freight_charge: String(order.amount || 0),
-                shippingcost: String(order.amount || 0),
-                insuranceamount: '0',
-                priceperkg: String(order.amount || 0),
-                signature: null,
-                photo: null,
-                long: null,
-                lat: null,
-                estimate_delivery: '1 Days',
-              },
-              detail: [
-                {
-                  cnote_no: order.waybill,
-                  cnote_date: h1.toISOString(),
-                  cnote_weight: String(order.product_weight || 0),
-                  cnote_origin: 'CGK10000',
-                  cnote_shipper_name: 'TOKO REJEKI',
-                  cnote_shipper_addr1: '-',
-                  cnote_shipper_addr2: ' ',
-                  cnote_shipper_addr3: null,
-                  cnote_shipper_city: 'JAKARTA',
-                  cnote_receiver_name: 'PENERIMA',
-                  cnote_receiver_addr1: '-',
-                  cnote_receiver_addr2: null,
-                  cnote_receiver_addr3: null,
-                  cnote_receiver_city: 'JAKARTA',
-                },
-              ],
-              history: [
-                {
-                  date: fmt(h1),
-                  desc: 'SHIPMENT RECEIVED BY JNE COUNTER OFFICER AT [JAKARTA]',
-                  code: 'RC1',
-                },
-                {
-                  date: fmt(h2),
-                  desc: 'PICKED UP BY COURIER [JAKARTA]',
-                  code: 'PU1',
-                },
-                {
-                  date: fmt(h3),
-                  desc: 'WITH DELIVERY COURIER [JAKARTA]',
-                  code: 'IP3',
-                },
-              ],
-            };
-            break;
-          }
-
-          const trackingUrlTemplate = process.env.TRACKING_JNE;
-          if (!trackingUrlTemplate) {
-            throw new Error('TRACKING_JNE belum diset di env');
-          }
-
-          const trackingUrl = trackingUrlTemplate.replace(
-            '{AWB}',
-            encodeURIComponent(order.waybill),
-          );
-
-          const body = new URLSearchParams({
-            username: process.env.USERNAME_JNE,
-            api_key: process.env.KEY_API_JNE,
-          }).toString();
-
-          const trackingRes = await axios({
-            method: 'POST',
-            url: trackingUrl,
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              Accept: 'application/json',
-            },
-            data: body,
-          });
-
-          tracking = trackingRes?.data || null;
+          tracking = await fetchTrackingData();
           break;
         }
 
         case 'FINISHED': {
-          // Wajib urut: PAID -> PROCESS -> WAYBILL -> FINISHED
-          if (order.paid_at == null) throw new Error('Order belum dibayar');
-          if (order.process_at == null) throw new Error('Order belum diproses');
-          if (order.waybill_created_at == null) throw new Error('No Resi belum ada');
-
-          // Cegah double finished
-          if (order.finished_at != null) throw new Error('Order sudah selesai');
-
-          await Order.updateStatus(invoice, 'finished');
+          // FINISHED diupdate otomatis lewat cron; endpoint ini hanya ambil tracking latest
+          tracking = await fetchTrackingData();
           break;
         }
 
