@@ -34,12 +34,13 @@ module.exports = {
     });
   },
 
-  register: (otp, phone, email, role, password) => {
+  register: (otp, phone, email, password) => {
     return new Promise((resolve, reject) => {
       var query = `INSERT INTO users (otp, phone, email, role, password) 
             VALUES (?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE created_at = NOW()`;
-      conn.query(query, [otp, phone, email, role, password], (e, result) => {
+      // Force role user (id=2), do not trust role from client payload
+      conn.query(query, [otp, phone, email, 2, password], (e, result) => {
         if (e) {
           reject(new Error(e));
         } else {

@@ -15,6 +15,8 @@ module.exports = {
 
       if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
 
+      if (String(password).length < 8) throw new Error('password minimal 8 karakter');
+
       var login = await Auth.login(email);
 
       if (login.length == 0) throw new Error('Pengguna tidak ditemukan');
@@ -58,7 +60,7 @@ module.exports = {
   },
 
   register: async (req, res) => {
-    const { fullname, email, password, phone, role } = req.body;
+    const { fullname, email, password, phone } = req.body;
 
     try {
       if (typeof fullname == 'undefined' || fullname == '') throw new Error('fullname wajib diisi');
@@ -68,6 +70,8 @@ module.exports = {
       if (typeof phone == 'undefined' || phone == '') throw new Error('phone wajib diisi');
 
       if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
+
+      if (String(password).length < 8) throw new Error('password minimal 8 karakter');
 
       var checkMail = await Auth.checkEmail(email);
       if (checkMail.length != 0) throw new Error(`Pengguna ${checkMail[0].email} sudah ada`);
@@ -81,7 +85,7 @@ module.exports = {
 
       await utils.sendEmail(email, otp);
 
-      const insertId = await Auth.register(otp, phone, email, role, passwordHash);
+      const insertId = await Auth.register(otp, phone, email, passwordHash);
 
       await User.insert(insertId, fullname);
 
@@ -103,12 +107,25 @@ module.exports = {
           email: email,
           is_active: 'disabled',
           phone: phone,
-          role: role == 1 ? 'admin' : 'user',
+          role: 'user',
         },
       });
     } catch (e) {
       console.log(e);
-      misc.response(res, 400, true, e.message);
+      const unsafeError = String(e.message || '').toLowerCase();
+      const shouldHideDetail =
+        unsafeError.includes('sql') ||
+        unsafeError.includes('column') ||
+        unsafeError.includes('table') ||
+        unsafeError.includes('constraint') ||
+        unsafeError.includes('duplicate');
+
+      misc.response(
+        res,
+        400,
+        true,
+        shouldHideDetail ? 'Gagal registrasi, silakan periksa data yang diinput' : e.message,
+      );
     }
   },
 
@@ -269,6 +286,8 @@ module.exports = {
     try {
       if (typeof email == 'undefined' || email == '') throw new Error('email wajib diisi');
       if (typeof password == 'undefined' || password == '') throw new Error('password wajib diisi');
+
+      if (String(password).length < 8) throw new Error('password minimal 8 karakter');
       if (typeof otp == 'undefined' || otp == '') throw new Error('otp wajib diisi');
       if (!utils.validateEmail(email))
         throw new Error('Invalid format E-mail Address. Etc : johndoe@gmail.com');
