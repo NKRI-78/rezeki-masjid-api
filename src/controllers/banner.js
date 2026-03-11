@@ -43,6 +43,10 @@ module.exports = {
     try {
       const { path, link } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       if (!path || String(path).trim() === '') {
         return misc.response(res, 400, true, 'path is required');
       }
@@ -64,6 +68,10 @@ module.exports = {
     try {
       const { id } = req.params;
       const { path, link } = req.body;
+
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
 
       if (!path || String(path).trim() === '') {
         return misc.response(res, 400, true, 'path is required');
@@ -95,6 +103,10 @@ module.exports = {
   remove: async (req, res) => {
     try {
       const { id } = req.params;
+
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
 
       const existing = await Banner.detail(id);
       if (!existing) {

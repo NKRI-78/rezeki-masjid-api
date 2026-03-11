@@ -9,7 +9,7 @@ router.get('/list', shop.list);
 router.get('/:id', shop.detail);
 router.post('/', jwt, shop.create);
 router.put('/:id', jwt, shop.update);
-router.delete('/:id', shop.delete);
-router.patch('/:id/active', shop.setActive);
+router.delete('/:id', jwt, shop.delete);
+router.patch('/:id/active', jwt, shop.setActive);
 
 module.exports = router;

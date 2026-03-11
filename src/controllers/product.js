@@ -131,6 +131,10 @@ module.exports = {
     try {
       const { title, content, price, stock, weight, shop_id, path, paths } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       // Validasi minimal
       if (!title) return misc.response(res, 400, true, 'title wajib diisi');
       if (price === undefined || price === null)
@@ -182,6 +186,10 @@ module.exports = {
       const { id } = req.params;
       const { title, content, price, stock, weight, shop_id, path, paths } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       const exists = await Product.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Produk tidak ditemukan');
 
@@ -229,6 +237,10 @@ module.exports = {
   remove: async (req, res) => {
     try {
       const { id } = req.params;
+
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
 
       const exists = await Product.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Produk tidak ditemukan');

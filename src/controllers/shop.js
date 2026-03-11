@@ -50,6 +50,10 @@ module.exports = {
         is_active,
       } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       if (!name) return misc.response(res, 400, true, 'nama wajib dibutuhkan');
       if (!phone) return misc.response(res, 400, true, 'phone wajib dibutuhkan');
       if (!address) return misc.response(res, 400, true, 'address wajib dibutuhkan');
@@ -110,6 +114,10 @@ module.exports = {
         is_active,
       } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       const exists = await Shop.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
 
@@ -149,6 +157,10 @@ module.exports = {
     try {
       const { id } = req.params;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       const exists = await Shop.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Toko tidak ditemukan');
 
@@ -167,6 +179,10 @@ module.exports = {
     try {
       const { id } = req.params;
       const { is_active } = req.body;
+
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
 
       if (!is_active) return misc.response(res, 400, true, 'is_active is required');
       if (!['enabled', 'disabled'].includes(is_active)) {

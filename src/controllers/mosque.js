@@ -170,12 +170,17 @@ module.exports = {
         link,
       } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       if (!name) return misc.response(res, 400, true, 'nama wajib diisi');
       if (!description) return misc.response(res, 400, true, 'deskripsi wajib diisi');
       if (!phone) return misc.response(res, 400, true, 'phone wajib diisi');
 
       const normalizedPaths = normalizeMosquePaths(path, paths);
-      if (!normalizedPaths.length) return misc.response(res, 400, true, 'paths wajib diisi (minimal 1 gambar)');
+      if (!normalizedPaths.length)
+        return misc.response(res, 400, true, 'paths wajib diisi (minimal 1 gambar)');
       if (!detail_address) return misc.response(res, 400, true, 'detail alamat wajib diisi');
       if (!province) return misc.response(res, 400, true, 'provinsi wajib diisi');
       if (!city) return misc.response(res, 400, true, 'city wajib diisi');
@@ -243,6 +248,10 @@ module.exports = {
         link,
       } = req.body;
 
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       const exists = await Mosque.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
 
@@ -294,6 +303,10 @@ module.exports = {
     const { items } = req.body;
 
     try {
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       if (typeof items == 'undefined' || items.length == 0)
         throw new Error('items tidak boleh kosong');
 
@@ -332,6 +345,10 @@ module.exports = {
     const { is_active } = req.body;
 
     try {
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
+
       await Mosque.toggleActiveProduct(is_active, product_id, mosque_id);
 
       return misc.response(res, 200, false, 'Toggle Product', {});
@@ -345,6 +362,10 @@ module.exports = {
   remove: async (req, res) => {
     try {
       const { id } = req.params;
+
+      const decoded = req.decoded;
+
+      if (decoded.role != 'admin') throw new Error('Role bukan admin');
 
       const exists = await Mosque.detail(id);
       if (!exists) return misc.response(res, 404, true, 'Masjid tidak ditemukan');
