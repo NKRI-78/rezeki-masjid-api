@@ -104,6 +104,14 @@ module.exports = {
       const row = await Order.detail(invoice);
       if (!row) return misc.response(res, 404, true, 'Order tidak ditemukan');
 
+      const actorId = req?.decoded?.id;
+      const actorRole = String(req?.decoded?.role || '').toLowerCase();
+      const isAdmin = actorRole === 'admin';
+
+      if (!isAdmin && String(row.user_id) !== String(actorId)) {
+        return misc.response(res, 403, true, 'Forbidden');
+      }
+
       const products = await Order.orderItem(row.id);
       const shop = await Shop.detail(row.shop_id);
       const mosque = await Mosque.detail(row.mosque_id);
@@ -748,6 +756,14 @@ module.exports = {
       const order = await Order.detail(invoice);
       if (!order) {
         return res.status(404).json({ error: true, message: 'Order tidak ditemukan' });
+      }
+
+      const actorId = req?.decoded?.id;
+      const actorRole = String(req?.decoded?.role || '').toLowerCase();
+      const isAdmin = actorRole === 'admin';
+
+      if (!isAdmin && String(order.user_id) !== String(actorId)) {
+        return res.status(403).json({ error: true, message: 'Forbidden' });
       }
 
       if (!order.waybill) {
