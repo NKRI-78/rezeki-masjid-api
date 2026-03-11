@@ -1,8 +1,9 @@
 const express = require('express');
 const Route = express.Router();
 const auth = require('../controllers/auth');
+const { loginRateLimit } = require('../middlewares/authRateLimit');
 
-Route.post('/login', auth.login)
+Route.post('/login', loginRateLimit, auth.login)
   .post('/register', auth.register)
   .post('/verify-otp', auth.verifyOtp)
   .post('/resend-otp', auth.resendOtp)

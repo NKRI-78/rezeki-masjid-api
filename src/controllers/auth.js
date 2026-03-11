@@ -5,6 +5,7 @@ const Auth = require('../models/Auth');
 const User = require('../models/User');
 
 const { generateOTP } = require('../configs/otp');
+const { markLoginFailure, clearLoginFailure } = require('../middlewares/authRateLimit');
 
 module.exports = {
   login: async (req, res) => {
@@ -19,7 +20,7 @@ module.exports = {
 
       var login = await Auth.login(email);
 
-      if (login.length == 0) throw new Error('Pengguna tidak ditemukan');
+      if (login.length == 0) throw new Error('INVALID_CREDENTIALS');
 
       var user = login[0];
 
@@ -30,7 +31,7 @@ module.exports = {
 
       var passwordHash = await utils.checkPasswordEncrypt(password, user.password);
 
-      if (!passwordHash) throw new Error('password tidak sama');
+      if (!passwordHash) throw new Error('INVALID_CREDENTIALS');
 
       var payload = {
         id: user.id,
@@ -40,6 +41,8 @@ module.exports = {
 
       var token = jwt.sign(payload, process.env.JWT_SECRET);
       var refreshToken = jwt.sign(payload, process.env.JWT_SECRET);
+
+      clearLoginFailure(req);
 
       misc.response(res, 200, false, '', {
         token: token,
@@ -55,7 +58,15 @@ module.exports = {
       });
     } catch (e) {
       console.log(e);
-      misc.response(res, 400, true, e.message);
+
+      const msg = String(e.message || '');
+
+      if (msg === 'INVALID_CREDENTIALS') {
+        markLoginFailure(req);
+        return misc.response(res, 401, true, 'Email atau password salah');
+      }
+
+      return misc.response(res, 400, true, msg);
     }
   },
 
