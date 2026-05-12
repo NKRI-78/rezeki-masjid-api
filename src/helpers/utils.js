@@ -277,7 +277,7 @@ module.exports = {
   },
 
   sendFCM: async (title, body, token, type, newsId, eventId) => {
-    await axios.post('https://api-fcm.inovatiftujuh8.com/api/v1/firebase/fcm', {
+    await axios.post('https://api-fcm.langitdigital78.com/api/v1/firebase/fcm', {
       token: token,
       title: title,
       body: body,
